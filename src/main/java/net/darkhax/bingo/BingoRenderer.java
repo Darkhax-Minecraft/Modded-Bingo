@@ -16,6 +16,7 @@ import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import org.lwjgl.opengl.GL11;
 import scala.actors.threadpool.Arrays;
 
 @EventBusSubscriber(modid = "bingo")
@@ -35,35 +36,51 @@ public class BingoRenderer {
     	
     	// Render the background image for the bingo board
     	Minecraft.getMinecraft().renderEngine.bindTexture(new ResourceLocation("bingo", "hud/bingo_board.png"));
-    	//GuiScreen.drawModalRectWithCustomSizedTexture(10, 10, 0, 0, 132, 133, 256, 256);
-    	
+        float texSize = 256f;
+    	GuiScreen.drawModalRectWithCustomSizedTexture(10, 10, 0, 0, 132, 133, texSize, texSize);
     	int[][] teamUVs = new int[4][4];
-    	teamUVs[0] = new int[]{0, 0, 11, 11};
-    	teamUVs[1] = new int[]{11, 0, 22, 11};
-    	teamUVs[2] = new int[]{0, 11, 11, 22};
-    	teamUVs[3] = new int[]{11, 11, 22, 22};
     	
-    	for (int x = 0; x < 5; x++) {
-    		
-    		for (int y = 0; y < 5; y++) {
-    			
-    			boolean[] states = BingoMod.currentGame.getCompletionStats(x, y);
-    			
-    			for (int corner = 0; corner < 4; corner++) {
-    				
-    				if (states[corner]) {
-
-        				int[] uvs = teamUVs[corner];
-        				float[] color = BingoAPI.getTeamColors(corner);
-        				GlStateManager.color(color[0], color[1], color[2]);
-    					//drawTexturedModalRect(17 + (x * 24) + uvs[0], 17 + (y * 24) + uvs[1], 132 + uvs[0], uvs[1], uvs[2], uvs[3], 1d);
-        				GuiScreen.drawModalRectWithCustomSizedTexture(17 + (x * 24) + uvs[0], 17 + (y * 24) + uvs[1], 132 + uvs[0], uvs[1], uvs[2], uvs[3], 256, 256);
+    	//posX, posY, sizeX, sizeY
+        //This doesn't need to be redefined each render? could be a static field.
+    	teamUVs[0] = new int[]{0, 0, 11, 11};
+    	teamUVs[1] = new int[]{11, 0, 11, 11};
+    	teamUVs[2] = new int[]{0, 11, 11, 11};
+    	teamUVs[3] = new int[]{11, 11, 11, 11};
+    
+        
+        BufferBuilder buffBuilder = Tessellator.getInstance().getBuffer();
+        buffBuilder.begin(GL11.GL_TRIANGLES, DefaultVertexFormats.POSITION_TEX_COLOR);
+        for (int x = 0; x < 5; x++) {
+        
+            for (int y = 0; y < 5; y++) {
+            
+                boolean[] states = BingoMod.currentGame.getCompletionStats(x, y);
+            
+                for (int corner = 0; corner < 4; corner++) {
+                
+                    if (states[corner]) {
+                    
+                        int[] uvs = teamUVs[corner];
+                        float[] color = BingoAPI.getTeamColors(corner);
+                    
+                        int xOffset = 17 + (x * 24) + uvs[0];
+                        int yOffset = 17 + (y * 24) + uvs[1];
+                        float minU = (132 + uvs[0]) / texSize;
+                        float maxU = (132 + uvs[0] + uvs[2]) / texSize;
+                        float minV = uvs[1] / texSize;
+                        float maxV = (uvs[1] + uvs[3]) / texSize;
+                    
+                        buffBuilder.pos(xOffset, yOffset + uvs[3], 0).tex(minU, maxV).color(color[0], color[1], color[2], 1f).endVertex();
+                        buffBuilder.pos(xOffset + uvs[2], yOffset + uvs[3], 0).tex(maxU, maxV).color(color[0], color[1], color[2], 1f).endVertex();
+                        buffBuilder.pos(xOffset + uvs[2], yOffset, 0).tex(maxU, minV).color(color[0], color[1], color[2], 1f).endVertex();
+                        buffBuilder.pos(xOffset, yOffset, 0).tex(minU, minV).color(color[0], color[1], color[2], 1f).endVertex();
     				}
     			}
     		}
     	}
     	
-    	GlStateManager.color(1, 1, 1);
+    	Tessellator.getInstance().draw();
+    	GlStateManager.enableLighting();
     	
     	// Render items on the bingo board.
     	RenderHelper.enableGUIStandardItemLighting();
@@ -86,15 +103,4 @@ public class BingoRenderer {
     	GlStateManager.popMatrix();
     }
     
-    private static void drawTexturedModalRect(int x, int y, int textureX, int textureY, int width, int height, double zLevel) {
-    	
-        Tessellator tessellator = Tessellator.getInstance();
-        BufferBuilder bufferbuilder = tessellator.getBuffer();
-        bufferbuilder.begin(7, DefaultVertexFormats.POSITION_TEX);
-        bufferbuilder.pos((double)(x + 0), (double)(y + height), zLevel).tex((double)((float)(textureX + 0) * 0.00390625F), (double)((float)(textureY + height) * 0.00390625F)).endVertex();
-        bufferbuilder.pos((double)(x + width), (double)(y + height), zLevel).tex((double)((float)(textureX + width) * 0.00390625F), (double)((float)(textureY + height) * 0.00390625F)).endVertex();
-        bufferbuilder.pos((double)(x + width), (double)(y + 0), zLevel).tex((double)((float)(textureX + width) * 0.00390625F), (double)((float)(textureY + 0) * 0.00390625F)).endVertex();
-        bufferbuilder.pos((double)(x + 0), (double)(y + 0), zLevel).tex((double)((float)(textureX + 0) * 0.00390625F), (double)((float)(textureY + 0) * 0.00390625F)).endVertex();
-        tessellator.draw();
-    }
 }
