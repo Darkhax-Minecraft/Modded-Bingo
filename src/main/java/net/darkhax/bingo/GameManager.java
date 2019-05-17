@@ -10,6 +10,7 @@ import net.darkhax.bingo.api.GoalTable;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.ItemStack;
+import net.minecraft.server.management.PlayerList;
 import net.minecraft.util.text.TextComponentTranslation;
 
 public class GameManager {
@@ -41,7 +42,7 @@ public class GameManager {
     	if (state && player != null) {
     		
     		Goal goal = this.getGoal(x, y);
-    		player.server.sendMessage(new TextComponentTranslation("bingo.player.obtained", player.getDisplayName(), goal.getTarget().getTextComponent()));
+    		player.server.getPlayerList().sendMessage(new TextComponentTranslation("bingo.player.obtained", player.getDisplayName(), goal.getTarget().getTextComponent()));
     	}
     }
     
