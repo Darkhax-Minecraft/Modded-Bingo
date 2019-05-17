@@ -17,11 +17,11 @@ import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import org.lwjgl.opengl.GL11;
-import scala.actors.threadpool.Arrays;
 
 @EventBusSubscriber(modid = "bingo")
 public class BingoRenderer {
 
+	private static final int[][] teamUVs = new int[][] {new int[]{0, 0, 11, 11}, new int[]{11, 0, 11, 11}, new int[]{0, 11, 11, 11}, new int[]{11, 11, 11, 11}};
     @SubscribeEvent
     public static void render(RenderGameOverlayEvent.Post event) {
     	
@@ -37,19 +37,10 @@ public class BingoRenderer {
     	// Render the background image for the bingo board
     	Minecraft.getMinecraft().renderEngine.bindTexture(new ResourceLocation("bingo", "hud/bingo_board.png"));
         float texSize = 256f;
-    	GuiScreen.drawModalRectWithCustomSizedTexture(10, 10, 0, 0, 132, 133, texSize, texSize);
-    	int[][] teamUVs = new int[4][4];
-    	
-    	//posX, posY, sizeX, sizeY
-        //This doesn't need to be redefined each render? could be a static field.
-    	teamUVs[0] = new int[]{0, 0, 11, 11};
-    	teamUVs[1] = new int[]{11, 0, 11, 11};
-    	teamUVs[2] = new int[]{0, 11, 11, 11};
-    	teamUVs[3] = new int[]{11, 11, 11, 11};
-    
+    	GuiScreen.drawModalRectWithCustomSizedTexture(10, 10, 0, 0, 132, 132, texSize, texSize);   
         
         BufferBuilder buffBuilder = Tessellator.getInstance().getBuffer();
-        buffBuilder.begin(GL11.GL_TRIANGLES, DefaultVertexFormats.POSITION_TEX_COLOR);
+        buffBuilder.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_TEX_COLOR);
         for (int x = 0; x < 5; x++) {
         
             for (int y = 0; y < 5; y++) {
@@ -98,7 +89,7 @@ public class BingoRenderer {
     	Minecraft.getMinecraft().fontRenderer.drawString("Winner: " + BingoMod.currentGame.checkWinState(), 500, 20, 0);
     	
     	GlStateManager.scale(0.5, 0.5, 10);
-    	Minecraft.getMinecraft().fontRenderer.drawString("Bingo " + "V1.0.0" + " by Darkhax", 25, 275, 0);
+    	Minecraft.getMinecraft().fontRenderer.drawString("Bingo " + "V1.0.0" + " by Darkhax", 25, 272, 0);
     	
     	GlStateManager.popMatrix();
     }
