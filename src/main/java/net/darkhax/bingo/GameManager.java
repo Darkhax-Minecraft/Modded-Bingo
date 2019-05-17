@@ -37,12 +37,15 @@ public class GameManager {
     
     public void setGoalComplete(EntityPlayerMP player, int x, int y, int team, boolean state) {
     	
-    	completionStates[x][y][team] = state;
-    	
-    	if (state && player != null) {
+    	if (completionStates[x][y][team] != state) {
     		
-    		Goal goal = this.getGoal(x, y);
-    		player.server.getPlayerList().sendMessage(new TextComponentTranslation("bingo.player.obtained", player.getDisplayName(), goal.getTarget().getTextComponent()));
+        	completionStates[x][y][team] = state;
+        	
+        	if (state && player != null) {
+        		
+        		Goal goal = this.getGoal(x, y);
+        		player.server.getPlayerList().sendMessage(new TextComponentTranslation("bingo.player.obtained", player.getDisplayName(), goal.getTarget().getTextComponent()));
+        	}
     	}
     }
     
