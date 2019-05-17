@@ -2,19 +2,24 @@ package net.darkhax.bingo;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
+import java.util.UUID;
 
 import net.darkhax.bingo.api.Goal;
 import net.darkhax.bingo.api.GoalTable;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.ItemStack;
-import net.minecraft.server.management.PlayerList;
+import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.TextComponentTranslation;
+import net.minecraft.util.text.TextFormatting;
 
 public class GameManager {
 
+	private Map<UUID, TextFormatting> playerTeams = new HashMap<>();
     private final Goal[][] goals = new Goal[5][5];
     private final boolean[][][] completionStates = new boolean[5][5][4];
     
@@ -44,7 +49,14 @@ public class GameManager {
         	if (state && player != null) {
         		
         		Goal goal = this.getGoal(x, y);
-        		player.server.getPlayerList().sendMessage(new TextComponentTranslation("bingo.player.obtained", player.getDisplayName(), goal.getTarget().getTextComponent()));
+        		
+        		ITextComponent playerName = player.getDisplayName();
+        		playerName.getStyle().setColor(this.getTeam(player));
+        		
+        		ITextComponent itemName = goal.getTarget().getTextComponent();
+        		itemName.getStyle().setColor(TextFormatting.GRAY);
+        		
+        		player.server.getPlayerList().sendMessage(new TextComponentTranslation("bingo.player.obtained", playerName, itemName));
         	}
     	}
     }
@@ -57,6 +69,16 @@ public class GameManager {
     public boolean[] getCompletionStats(int x, int y) {
     	
     	return completionStates[x][y];
+    }
+    
+    public void setTeam(EntityPlayer player, TextFormatting team) {
+    	
+    	playerTeams.put(player.getUniqueID(), team);
+    }
+    
+    public TextFormatting getTeam(EntityPlayer player) {
+    	
+    	return playerTeams.getOrDefault(player.getUniqueID(), TextFormatting.RED);
     }
     
     public int checkWinState() {
