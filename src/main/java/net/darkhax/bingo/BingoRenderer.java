@@ -16,6 +16,8 @@ import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.event.entity.player.ItemTooltipEvent;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import net.minecraftforge.fml.common.gameevent.TickEvent;
+import net.minecraftforge.fml.common.gameevent.TickEvent.Phase;
 
 @EventBusSubscriber(modid = "bingo")
 public class BingoRenderer {
@@ -28,9 +30,9 @@ public class BingoRenderer {
 	}
 	
     @SubscribeEvent
-    public static void render(RenderGameOverlayEvent.Post event) {
+    public static void render(TickEvent.RenderTickEvent event) {
     	
-    	if (Minecraft.getMinecraft().currentScreen == null && !Minecraft.getMinecraft().gameSettings.showDebugInfo && BingoMod.GAME_STATE.isActive()) {
+    	if (event.phase == Phase.END && Minecraft.getMinecraft().currentScreen == null && !Minecraft.getMinecraft().gameSettings.showDebugInfo && BingoMod.GAME_STATE.isActive()) {
     		
         	RenderItem itemRender = Minecraft.getMinecraft().getRenderItem();
         	EntityPlayerSP player = Minecraft.getMinecraft().player;
