@@ -1,35 +1,39 @@
 package net.darkhax.bingo;
 
-import java.awt.Color;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Random;
-import java.util.Set;
+import java.io.File;
+import java.io.IOException;
 
 import net.darkhax.bingo.api.Goal;
 import net.darkhax.bingo.api.GoalTable;
 import net.darkhax.bingo.api.GoalTier;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.entity.EntityPlayerSP;
-import net.minecraft.client.gui.GuiScreen;
-import net.minecraft.client.renderer.GlStateManager;
-import net.minecraft.client.renderer.RenderHelper;
-import net.minecraft.client.renderer.RenderItem;
+import net.darkhax.bingo.commands.CommandBingo;
+import net.darkhax.bookshelf.BookshelfRegistry;
 import net.minecraft.init.Blocks;
 import net.minecraft.init.Items;
+import net.minecraft.item.EnumDyeColor;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.CompressedStreamTools;
+import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.util.text.TextFormatting;
+import net.minecraftforge.common.DimensionManager;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.Mod.EventHandler;
 import net.minecraftforge.fml.common.event.FMLInitializationEvent;
+import net.minecraftforge.fml.common.event.FMLServerStartedEvent;
+import net.minecraftforge.fml.common.event.FMLServerStoppingEvent;
 
 @Mod(modid = "bingo", name = "Bingo", version = "@VERSION@", certificateFingerprint = "@FINGERPRINT@")
 public class BingoMod {
 
 	public static final GoalTable DEFAULT = BingoAPI.creteGoalTable("default");
 	public static final GoalTable CLASSIC = BingoAPI.creteGoalTable("classic");
+	public static final Team TEAM_RED = new Team(TextFormatting.RED, 0, EnumDyeColor.RED);
+	public static final Team TEAM_YELLOW = new Team(TextFormatting.YELLOW, 1, EnumDyeColor.YELLOW);
+	public static final Team TEAM_GREEN = new Team(TextFormatting.GREEN, 2, EnumDyeColor.GREEN);
+	public static final Team TEAM_BLUE = new Team(TextFormatting.BLUE, 3, EnumDyeColor.BLUE);
+	public static final Team[] TEAMS = new Team[] {TEAM_RED, TEAM_YELLOW, TEAM_GREEN, TEAM_BLUE};
 	
-	public static GameManager currentGame;
+	public static final GameManager GAME_STATE = new GameManager();
 	
     @EventHandler
     public void init (FMLInitializationEvent event) {
@@ -37,8 +41,47 @@ public class BingoMod {
     	registerEntries(DEFAULT);
     	registerEntries(CLASSIC);
     	
-    	currentGame = new GameManager(CLASSIC);
-    	currentGame.reload(new Random());
+    	BookshelfRegistry.addCommand(new CommandBingo());
+    }
+    
+    @EventHandler
+    public void serverStarted(FMLServerStartedEvent event) {
+    	
+    	File bingoFile = new File(DimensionManager.getCurrentSaveRootDirectory(), "bingo.data");
+    	
+    	if (bingoFile.exists()) {
+    		
+        	try {
+        		
+        		NBTTagCompound tag = CompressedStreamTools.read(bingoFile);
+        		
+            	if (tag != null) {
+            		
+                	BingoPersistantData.read(tag);
+            	}
+			} 
+        	
+        	catch (IOException e) {
+        		
+    			e.printStackTrace();
+			}
+    	}
+    }
+    
+    @EventHandler
+    public void serverStopping(FMLServerStoppingEvent event) {
+    	
+    	File bingoFile = new File(DimensionManager.getCurrentSaveRootDirectory(), "bingo.data");
+    	
+    	try {
+    		
+			CompressedStreamTools.write(BingoPersistantData.write(), bingoFile);
+		} 
+    	
+    	catch (IOException e) {
+
+			e.printStackTrace();
+		}
     }
     
 	private static void registerEntries(GoalTable table) {

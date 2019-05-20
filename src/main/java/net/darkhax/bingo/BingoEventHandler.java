@@ -13,7 +13,7 @@ public class BingoEventHandler {
 		
 		if (event.player instanceof EntityPlayerMP) {
 			
-			BingoMod.currentGame.onPlayerPickupItem((EntityPlayerMP) event.player, event.getStack());
+			BingoMod.GAME_STATE.onPlayerPickupItem((EntityPlayerMP) event.player, event.getStack());
 		}
 	}
 }

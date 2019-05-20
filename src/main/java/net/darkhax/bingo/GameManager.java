@@ -2,32 +2,55 @@ package net.darkhax.bingo;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Random;
-import java.util.UUID;
 
 import net.darkhax.bingo.api.Goal;
 import net.darkhax.bingo.api.GoalTable;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.item.EntityFireworkRocket;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.TextComponentTranslation;
 import net.minecraft.util.text.TextFormatting;
+import net.minecraftforge.fml.common.ObfuscationReflectionHelper;
 
 public class GameManager {
 
-	private Map<UUID, TextFormatting> playerTeams = new HashMap<>();
-    private final Goal[][] goals = new Goal[5][5];
-    private final boolean[][][] completionStates = new boolean[5][5][4];
-    
     private GoalTable table;
+	private Random random;
+    private Goal[][] goals = new Goal[5][5];
+    private Team[][][] completionStates = new Team[5][5][4];
+    private boolean isActive = false;
+    private boolean hasStarted = false;    
     
-    public GameManager(GoalTable table) {
+    public void create(Random random, GoalTable table) {
     	
+    	this.reset();
     	this.table = table;
+    	this.random = random;
+    	this.rollGoals(random);
+    	this.isActive = true;
+    }
+    
+    public void start() {
+    	
+    	this.hasStarted = true;
+    }
+    
+    public void end() {
+    	
+    	this.hasStarted = false;
+    	this.isActive = false;
+    	this.reset();
+    }
+    
+    public void reset() {
+    	
+    	goals = new Goal[5][5];
+    	completionStates = new Team[5][5][4];
+    	hasStarted = false;
+    	table = null;
     }
     
     public Goal getGoal(int x, int y) {
@@ -40,50 +63,46 @@ public class GameManager {
     	goals[x][y] = goal;
     }
     
-    public void setGoalComplete(EntityPlayerMP player, int x, int y, int team, boolean state) {
+    public void setGoalComplete(EntityPlayerMP player, int x, int y) {
     	
-    	if (completionStates[x][y][team] != state) {
+    	final Team playerTeam = BingoPersistantData.getTeam(player);
+    	
+    	completionStates[x][y][playerTeam.getTeamCorner()] = playerTeam;
+    	
+    	if (player != null) {
     		
-        	completionStates[x][y][team] = state;
-        	
-        	if (state && player != null) {
-        		
-        		Goal goal = this.getGoal(x, y);
-        		
-        		ITextComponent playerName = player.getDisplayName();
-        		playerName.getStyle().setColor(this.getTeam(player));
-        		
-        		ITextComponent itemName = goal.getTarget().getTextComponent();
-        		itemName.getStyle().setColor(TextFormatting.GRAY);
-        		
-        		player.server.getPlayerList().sendMessage(new TextComponentTranslation("bingo.player.obtained", playerName, itemName));
-        	}
+    		final Goal goal = this.getGoal(x, y);
+    		
+    		ITextComponent playerName = player.getDisplayName();
+    		playerName.getStyle().setColor(playerTeam.getTeamColorText());
+    		
+    		ITextComponent itemName = goal.getTarget().getTextComponent();
+    		itemName.getStyle().setColor(TextFormatting.GRAY);
+    		
+    		player.server.getPlayerList().sendMessage(new TextComponentTranslation("bingo.player.obtained", playerName, itemName));
+
+    		
+    		EntityFireworkRocket rocket = new EntityFireworkRocket(player.getEntityWorld(), player.posX, player.posY, player.posZ, playerTeam.getFireworStack());
+    		ObfuscationReflectionHelper.setPrivateValue(EntityFireworkRocket.class, rocket, 0, "field_92055_b");
+    		player.getEntityWorld().spawnEntity(rocket);
+    		
+    		System.out.println(playerTeam.getFireworStack().getTagCompound().toString());
     	}
     }
     
-    public boolean hasCompletedGoal(int x, int y, int team) {
+    public boolean hasCompletedGoal(int x, int y, Team team) {
     	
-    	return completionStates[x][y][team];
+    	return completionStates[x][y][team.getTeamCorner()] != null;
     }
     
-    public boolean[] getCompletionStats(int x, int y) {
+    public Team[] getCompletionStats(int x, int y) {
     	
     	return completionStates[x][y];
     }
     
-    public void setTeam(EntityPlayer player, TextFormatting team) {
+    public Team checkWinState() {
     	
-    	playerTeams.put(player.getUniqueID(), team);
-    }
-    
-    public TextFormatting getTeam(EntityPlayer player) {
-    	
-    	return playerTeams.getOrDefault(player.getUniqueID(), TextFormatting.RED);
-    }
-    
-    public int checkWinState() {
-    	
-    	for (int team = 0; team < 4; team++) {
+    	for (Team team : BingoMod.TEAMS) {
     		
     		// Check vertical lines
         	for (int x = 0; x < 5; x++) {
@@ -138,26 +157,29 @@ public class GameManager {
         	}
     	}
     	
-    	return -1;
+    	return null;
     }
     
     public void onPlayerPickupItem(EntityPlayerMP player, ItemStack stack) {
     	
-    	for (int x = 0; x < 5; x++) {
+    	if (BingoMod.GAME_STATE.isHasStarted()) {
     		
-    		for (int y = 0; y < 5; y++) {
-    			
-    			final Goal goal = getGoal(x, y);
-    			
-    			if (ItemStack.areItemStacksEqual(goal.getTarget(), stack)) {
-    				
-    				setGoalComplete(player, x, y, 1, true);
-    			}
-    		}
+        	for (int x = 0; x < 5; x++) {
+        		
+        		for (int y = 0; y < 5; y++) {
+        			
+        			final Goal goal = getGoal(x, y);
+        			
+        			if (ItemStack.areItemStacksEqual(goal.getTarget(), stack)) {
+        				
+        				setGoalComplete(player, x, y);
+        			}
+        		}
+        	}
     	}
     }
     
-    public void reload(Random rand) {
+    public void rollGoals(Random rand) {
     	  	
     	List<Goal> generatedGoals = new ArrayList<>();
     	
@@ -189,11 +211,6 @@ public class GameManager {
     		
     		this.setGoal(xOff, yOff, goal);
     		
-    		for (int team = 0; team < 4; team++) {
-    			
-    			this.setGoalComplete(null, xOff, yOff, team, false);
-    		}
-    		
     		xOff++;
     		if (xOff == 5) {
     			
@@ -202,4 +219,48 @@ public class GameManager {
     		}
     	}
     }
+
+	public GoalTable getTable() {
+		return table;
+	}
+
+	public void setTable(GoalTable table) {
+		this.table = table;
+	}
+
+	public Random getRandom() {
+		return random;
+	}
+
+	public void setRandom(Random random) {
+		this.random = random;
+	}
+
+	public Goal[][] getGoals() {
+		return goals;
+	}
+
+	public void setGoals(Goal[][] goals) {
+		this.goals = goals;
+	}
+
+	public Team[][][] getCompletionStates() {
+		return completionStates;
+	}
+
+	public void setCompletionStates(Team[][][] completionStates) {
+		this.completionStates = completionStates;
+	}
+
+	public boolean isHasStarted() {
+		return hasStarted;
+	}
+
+	public void setHasStarted(boolean hasStarted) {
+		this.hasStarted = hasStarted;
+	}
+
+	public boolean isActive() {
+		return isActive;
+	}
 }

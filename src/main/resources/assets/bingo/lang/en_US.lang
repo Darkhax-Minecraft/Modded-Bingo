@@ -1,1 +1,18 @@
 bingo.player.obtained=[Bingo] %s obtained a %s
+
+command.bingo.team.usage=/bingo team <red|green|blue|yellow>
+command.bingo.team.unknown=[Bingo] The team %s is not valid.
+command.bingo.team.change=[Bingo] You have been added to the %s team.
+
+command.bingo.create.usage=/bingo create [table] [seed] 
+command.bingo.create.completed=[Bingo] The game has been created. Use "/bingo start" when you are ready to begin.
+command.bingo.create.announce=[Bingo] %s has created a game of bingo. Use "/bingo team <red|green|blue|yellow>" to join a team.
+
+command.bingo.start.usage=/bingo start
+command.bingo.start.started=[Bingo] %s has started the game. Have fun!
+
+command.bingo.reroll.usage=/bingo reroll
+command.bingo.reroll.announce=[Bingo] %s has re-rolled the bingo items.
+
+command.bingo.info.notactive=[Bingo] There is no game to start. You must run "/bingo create [table] [seed]" first.
+command.bingo.info.alreadystarted=[Bingo] Another game has already started. You can run "/bingo stop" to end the current game.

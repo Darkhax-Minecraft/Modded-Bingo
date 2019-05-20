@@ -51,6 +51,19 @@ minecraft {
     replaceIn "${mod_class}.java"
 }
 
+repositories {
+
+    maven {
+
+        url 'https://maven.mcmoddev.com'
+    }
+}
+
+dependencies {
+
+    deobfCompile "net.darkhax.bookshelf:Bookshelf-1.12.2:${version_bookshelf}"
+}
+
 processResources {
 
     inputs.property "version", project.version
