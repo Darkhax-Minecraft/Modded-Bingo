@@ -8,12 +8,12 @@ import net.minecraftforge.fml.common.gameevent.PlayerEvent.ItemPickupEvent;
 @EventBusSubscriber(modid = "bingo")
 public class BingoEventHandler {
 
-	@SubscribeEvent
-	public static void onPlayerPickupItem(ItemPickupEvent event) {
-		
-		if (event.player instanceof EntityPlayerMP) {
-			
-			BingoMod.GAME_STATE.onPlayerPickupItem((EntityPlayerMP) event.player, event.getStack());
-		}
-	}
+    @SubscribeEvent
+    public static void onPlayerPickupItem (ItemPickupEvent event) {
+
+        if (event.player instanceof EntityPlayerMP) {
+
+            BingoMod.GAME_STATE.onPlayerPickupItem((EntityPlayerMP) event.player, event.getStack());
+        }
+    }
 }

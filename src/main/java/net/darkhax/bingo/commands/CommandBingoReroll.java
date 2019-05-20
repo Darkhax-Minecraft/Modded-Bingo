@@ -4,31 +4,30 @@ import net.darkhax.bingo.BingoMod;
 import net.darkhax.bookshelf.command.Command;
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
-import net.minecraft.command.WrongUsageException;
 import net.minecraft.server.MinecraftServer;
 
 public class CommandBingoReroll extends Command {
 
-	@Override
-	public String getName() {
-		
-		return "reroll";
-	}
+    @Override
+    public String getName () {
 
-	@Override
-	public String getUsage(ICommandSender sender) {
+        return "reroll";
+    }
 
-		return "command.bingo.reroll.usage";
-	}
+    @Override
+    public String getUsage (ICommandSender sender) {
 
-	@Override
-	public void execute(MinecraftServer server, ICommandSender sender, String[] args) throws CommandException {
+        return "command.bingo.reroll.usage";
+    }
 
-		if (!BingoMod.GAME_STATE.isActive()) {
-			
-			throw new CommandException("command.bingo.info.notactive");
-		}
+    @Override
+    public void execute (MinecraftServer server, ICommandSender sender, String[] args) throws CommandException {
 
-		BingoMod.GAME_STATE.rollGoals(BingoMod.GAME_STATE.getRandom());
-	}
+        if (!BingoMod.GAME_STATE.isActive()) {
+
+            throw new CommandException("command.bingo.info.notactive");
+        }
+
+        BingoMod.GAME_STATE.rollGoals(BingoMod.GAME_STATE.getRandom());
+    }
 }

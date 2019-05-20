@@ -7,36 +7,36 @@ import net.minecraftforge.server.command.CommandTreeHelp;
 
 public class CommandBingo extends CommandTreeBase {
 
-	public CommandBingo() {
-		
-		this.addSubcommand(new CommandBingoTeam());
-		this.addSubcommand(new CommandBingoCreate());
-		this.addSubcommand(new CommandBingoStart());
-		this.addSubcommand(new CommandBingoReroll());
-		this.addSubcommand(new CommandTreeHelp(this));
-	}
-	
-	@Override
-	public String getName() {
-		
-		return "bingo";
-	}
+    public CommandBingo () {
 
-	@Override
-	public String getUsage(ICommandSender sender) {
-		
-		return "/bingo";
-	}
-	
+        this.addSubcommand(new CommandBingoTeam());
+        this.addSubcommand(new CommandBingoCreate());
+        this.addSubcommand(new CommandBingoStart());
+        this.addSubcommand(new CommandBingoReroll());
+        this.addSubcommand(new CommandTreeHelp(this));
+    }
+
+    @Override
+    public String getName () {
+
+        return "bingo";
+    }
+
+    @Override
+    public String getUsage (ICommandSender sender) {
+
+        return "/bingo";
+    }
+
     @Override
     public int getRequiredPermissionLevel () {
-        
+
         return 0;
     }
-    
+
     @Override
     public boolean checkPermission (MinecraftServer server, ICommandSender sender) {
-        
+
         return this.getRequiredPermissionLevel() <= 0 || super.checkPermission(server, sender);
     }
 }
