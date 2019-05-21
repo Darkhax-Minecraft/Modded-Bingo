@@ -12,15 +12,18 @@ import net.darkhax.bingo.api.goal.GoalTable;
 import net.darkhax.bingo.api.goal.GoalTier;
 import net.darkhax.bingo.api.team.Team;
 import net.darkhax.bingo.network.PacketSyncGoal;
+import net.darkhax.bookshelf.util.StackUtils;
 import net.minecraft.entity.item.EntityFireworkRocket;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.nbt.NBTTagString;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.TextComponentTranslation;
 import net.minecraft.util.text.TextFormatting;
+import net.minecraft.world.WorldServer;
 import net.minecraftforge.common.util.Constants.NBT;
 import net.minecraftforge.fml.common.ObfuscationReflectionHelper;
 
@@ -32,21 +35,18 @@ public class GameState {
     private Team[][][] completionStates = new Team[5][5][4];
     private boolean isActive = false;
     private boolean hasStarted = false;
+    private Team winner = null;
 
     public void read(NBTTagCompound tag) {
                
         this.reset();
         
-        System.out.println("Reading: " + tag);
         if (tag != null) {
-            
-            System.out.println("Reading: " + tag.toString());
             
             this.table = BingoAPI.getGoalTable(tag.getString("GoalTable"));
             
             if (table != null) {
                 
-                System.out.println("Table: " + table.getName());
                 NBTTagList goalsTag = tag.getTagList("Goals", NBT.TAG_COMPOUND);
                 
                 for (int i = 0; i < goalsTag.tagCount(); i++) {
@@ -84,7 +84,6 @@ public class GameState {
     
     public NBTTagCompound write() {
         
-        System.out.println("Writing: " + this.isActive());
         NBTTagCompound tag = new NBTTagCompound();
         
         if (this.getTable() != null) {
@@ -163,12 +162,12 @@ public class GameState {
 
     public void reset () {
 
-        System.out.println("reset");
         this.goals = new Goal[5][5];
         this.completionStates = new Team[5][5][4];
         this.hasStarted = false;
         this.isActive = false;
         this.table = null;
+        this.winner = null;
     }
 
     public Goal getGoal (int x, int y) {
@@ -199,12 +198,10 @@ public class GameState {
 
             player.server.getPlayerList().sendMessage(new TextComponentTranslation("bingo.player.obtained", playerName, itemName));
             BingoMod.NETWORK.sendToAll(new PacketSyncGoal(x, y, playerTeam.getTeamKey()));
-            final EntityFireworkRocket rocket = new EntityFireworkRocket(player.getEntityWorld(), player.posX, player.posY, player.posZ, playerTeam.getFireworStack());
-            ObfuscationReflectionHelper.setPrivateValue(EntityFireworkRocket.class, rocket, 0, "field_92055_b");
-            player.getEntityWorld().spawnEntity(rocket);
-            player.world.setEntityState(rocket, (byte)17);
-            rocket.setDead();
+            playerTeam.spawnFirework(player);
         }
+        
+        this.updateWinState(player.server);
     }
 
     public boolean hasCompletedGoal (int x, int y, Team team) {
@@ -217,6 +214,25 @@ public class GameState {
         return this.completionStates[x][y];
     }
 
+    public void updateWinState (MinecraftServer server) {
+        
+        this.winner = this.checkWinState();
+        
+        if (this.winner != null && this.isHasStarted() && this.isActive()) {
+            
+            this.hasStarted = false;
+            
+            server.getPlayerList().sendMessage(new TextComponentTranslation("bingo.winner", this.winner.getTeamName()));
+            
+            for (EntityPlayerMP player : server.getPlayerList().getPlayers()) {
+                
+                this.winner.spawnFirework(player);
+                this.winner.spawnFirework(player);
+                this.winner.spawnFirework(player);
+            }
+        }
+    }
+    
     public Team checkWinState () {
 
         for (final Team team : BingoMod.TEAMS) {
@@ -287,7 +303,7 @@ public class GameState {
 
                     final Goal goal = this.getGoal(x, y);
 
-                    if (ItemStack.areItemStacksEqual(goal.getTarget(), stack)) {
+                    if (StackUtils.areStacksSimilar(goal.getTarget(), stack)) {
 
                         this.setGoalComplete(player, x, y);
                     }
