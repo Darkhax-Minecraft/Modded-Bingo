@@ -5,7 +5,6 @@ import org.lwjgl.opengl.GL11;
 import net.darkhax.bingo.BingoMod;
 import net.darkhax.bingo.api.goal.Goal;
 import net.darkhax.bingo.api.team.Team;
-import net.minecraft.advancements.ICriterionTrigger;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.client.gui.Gui;
@@ -15,9 +14,7 @@ import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.client.renderer.RenderItem;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
-import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.ResourceLocation;
-import net.minecraftforge.event.entity.player.ItemTooltipEvent;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
@@ -41,17 +38,15 @@ public class BingoRenderer {
 
             GlStateManager.pushMatrix();
 
-            // Sets the scale of the entire HUD. If Z is less than 1 blocks render darker than
-            // they should.
-            GlStateManager.scale(2, 2, 1);
-
             // Render the background image for the bingo board
             Minecraft.getMinecraft().renderEngine.bindTexture(new ResourceLocation("bingo", "hud/bingo_board.png"));
             final float texSize = 256f;
             Gui.drawModalRectWithCustomSizedTexture(10, 10, 0, 0, 132, 132, texSize, texSize);
 
+            // Render all the claim markers to the GUI. This is done as a single buffer to maximize performance. (Can be up to 100X more efficient)
             final BufferBuilder buffBuilder = Tessellator.getInstance().getBuffer();
             buffBuilder.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_TEX_COLOR);
+            
             for (int x = 0; x < 5; x++) {
 
                 for (int y = 0; y < 5; y++) {
@@ -65,8 +60,8 @@ public class BingoRenderer {
                             final int[] uvs = teamUVs[team.getTeamCorner()];
                             final float[] color = team.getDyeColor().getColorComponentValues();
 
-                            final int xOffset = 17 + x * 24 + uvs[0];
-                            final int yOffset = 17 + y * 24 + uvs[1];
+                            final int xOffset = 13 + x * 24 + uvs[0];
+                            final int yOffset = 13 + y * 24 + uvs[1];
                             final float minU = (132 + uvs[0]) / texSize;
                             final float maxU = (132 + uvs[0] + uvs[2]) / texSize;
                             final float minV = uvs[1] / texSize;
@@ -95,17 +90,12 @@ public class BingoRenderer {
                     
                     if (goal != null) {
                         
-                        itemRender.renderItemAndEffectIntoGUI(player, goal.getTarget(), 20 + x * 24, 20 + y * 24);
+                        itemRender.renderItemAndEffectIntoGUI(player, goal.getTarget(), 16 + x * 24, 16 + y * 24);
                     }
                 }
             }
 
             RenderHelper.disableStandardItemLighting();
-
-            Minecraft.getMinecraft().fontRenderer.drawString("Winner: " + BingoMod.GAME_STATE.checkWinState(), 500, 20, 0);
-
-            GlStateManager.scale(0.5, 0.5, 10);
-            Minecraft.getMinecraft().fontRenderer.drawString("Bingo " + "V1.0.0" + " by Darkhax", 25, 272, 0);
 
             GlStateManager.popMatrix();
         }
