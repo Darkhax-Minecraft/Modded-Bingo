@@ -3,7 +3,9 @@ package net.darkhax.bingo.client;
 import org.lwjgl.opengl.GL11;
 
 import net.darkhax.bingo.BingoMod;
+import net.darkhax.bingo.api.goal.Goal;
 import net.darkhax.bingo.api.team.Team;
+import net.minecraft.advancements.ICriterionTrigger;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.client.gui.Gui;
@@ -13,28 +15,27 @@ import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.client.renderer.RenderItem;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.event.entity.player.ItemTooltipEvent;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent.Phase;
+import net.minecraftforge.fml.relauncher.Side;
 
-@EventBusSubscriber(modid = "bingo")
+@EventBusSubscriber(value = Side.CLIENT, modid = "bingo")
 public class BingoRenderer {
 
     private static final int[][] teamUVs = new int[][] { new int[] { 0, 0, 11, 11 }, new int[] { 11, 0, 11, 11 }, new int[] { 0, 11, 11, 11 }, new int[] { 11, 11, 11, 11 } };
 
     @SubscribeEvent
-    public static void onTooltipRender (ItemTooltipEvent event) {
-
-    }
-
-    @SubscribeEvent
     public static void render (TickEvent.RenderTickEvent event) {
 
-        if (event.phase == Phase.END && Minecraft.getMinecraft().currentScreen == null && !Minecraft.getMinecraft().gameSettings.showDebugInfo && BingoMod.GAME_STATE.isActive()) {
-
+        Minecraft mc = Minecraft.getMinecraft();
+        
+        if (event.phase == Phase.END && BingoMod.GAME_STATE.isActive() && Minecraft.isGuiEnabled() && mc.currentScreen == null && !mc.gameSettings.showDebugInfo && !(mc.gameSettings.keyBindPlayerList.isKeyDown() && !mc.isIntegratedServerRunning())) {
+            
             final RenderItem itemRender = Minecraft.getMinecraft().getRenderItem();
             final EntityPlayerSP player = Minecraft.getMinecraft().player;
 
@@ -90,7 +91,12 @@ public class BingoRenderer {
 
                 for (int y = 0; y < 5; y++) {
 
-                    itemRender.renderItemAndEffectIntoGUI(player, BingoMod.GAME_STATE.getGoal(x, y).getTarget(), 20 + x * 24, 20 + y * 24);
+                    Goal goal = BingoMod.GAME_STATE.getGoal(x, y);
+                    
+                    if (goal != null) {
+                        
+                        itemRender.renderItemAndEffectIntoGUI(player, goal.getTarget(), 20 + x * 24, 20 + y * 24);
+                    }
                 }
             }
 

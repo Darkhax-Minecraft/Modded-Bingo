@@ -1,6 +1,7 @@
 package net.darkhax.bingo.commands;
 
 import net.darkhax.bingo.BingoMod;
+import net.darkhax.bingo.network.PacketSyncGameState;
 import net.darkhax.bookshelf.command.Command;
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
@@ -29,5 +30,6 @@ public class CommandBingoReroll extends Command {
         }
 
         BingoMod.GAME_STATE.rollGoals(BingoMod.GAME_STATE.getRandom());
+        BingoMod.NETWORK.sendToAll(new PacketSyncGameState(BingoMod.GAME_STATE.write()));
     }
 }

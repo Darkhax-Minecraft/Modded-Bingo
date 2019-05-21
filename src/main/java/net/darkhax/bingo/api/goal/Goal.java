@@ -6,12 +6,16 @@ import net.minecraft.util.WeightedRandom;
 public class Goal extends WeightedRandom.Item {
 
     private final ItemStack targetItem;
+    private final String name;
+    private final String tier;
 
-    public Goal (ItemStack targetItem, int weight) {
+    public Goal (String table, String name, ItemStack targetItem, int weight) {
 
         super(weight);
         this.targetItem = targetItem;
-
+        this.name = name;
+        this.tier = table;
+        
         if (targetItem.isEmpty()) {
 
             throw new IllegalArgumentException("Item was air, this is not allowed!");
@@ -23,9 +27,19 @@ public class Goal extends WeightedRandom.Item {
         return this.targetItem;
     }
 
+    public String getTier() {
+        
+        return this.tier;
+    }
+    
+    public String getName() {
+        
+        return this.name;
+    }
+    
     @Override
     public int hashCode () {
 
-        return this.targetItem.hashCode();
+        return this.name.hashCode();
     }
 }

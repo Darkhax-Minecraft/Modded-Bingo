@@ -1,6 +1,7 @@
 package net.darkhax.bingo.commands;
 
 import net.darkhax.bingo.BingoMod;
+import net.darkhax.bingo.network.PacketSyncGameState;
 import net.darkhax.bookshelf.command.Command;
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
@@ -36,5 +37,6 @@ public class CommandBingoStart extends Command {
 
         BingoMod.GAME_STATE.start();
         server.getPlayerList().sendMessage(new TextComponentTranslation("command.bingo.start.started", sender.getDisplayName()));
+        BingoMod.NETWORK.sendToAll(new PacketSyncGameState(BingoMod.GAME_STATE.write()));
     }
 }

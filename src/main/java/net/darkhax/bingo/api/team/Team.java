@@ -13,6 +13,7 @@ import net.minecraft.nbt.NBTTagList;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.TextComponentString;
 import net.minecraft.util.text.TextFormatting;
+import net.minecraftforge.fml.common.ObfuscationReflectionHelper;
 
 public class Team {
 
@@ -24,6 +25,7 @@ public class Team {
     private final EnumDyeColor dyeColor;
     private ItemStack fireworStack;
     private final ITextComponent teamName;
+    private final int color;
 
     public Team (TextFormatting teamColorText, int teamCorner, EnumDyeColor dyeColor) {
 
@@ -34,6 +36,7 @@ public class Team {
         TEAM_NAMES.add(dyeColor.getTranslationKey());
         this.teamName = new TextComponentString(dyeColor.getTranslationKey());
         this.teamName.getStyle().setColor(this.getTeamColorText());
+        this.color = ObfuscationReflectionHelper.getPrivateValue(EnumDyeColor.class, this.dyeColor, "field_193351_w");
     }
 
     public TextFormatting getTeamColorText () {
@@ -55,6 +58,11 @@ public class Team {
 
         return this.teamName;
     }
+    
+    public String getTeamKey() {
+        
+        return this.getDyeColor().getTranslationKey();
+    }
 
     public ItemStack getFireworStack () {
 
@@ -71,7 +79,7 @@ public class Team {
             final NBTTagCompound explosion = new NBTTagCompound();
             explosions.appendTag(explosion);
             explosion.setByte("Type", (byte) 0);
-            explosion.setIntArray("Colors", new int[] { this.dyeColor.getColorValue() });
+            explosion.setIntArray("Colors", new int[] { this.color });
         }
 
         return this.fireworStack;

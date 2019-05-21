@@ -41,6 +41,7 @@ public class BingoPersistantData {
             list.appendTag(entryTag);
         }
 
+        saveData.setTag("GameState", BingoMod.GAME_STATE.write());
         return saveData;
     }
 
@@ -60,5 +61,7 @@ public class BingoPersistantData {
                 PLAYER_TEAMS.put(playerData.getUniqueId("PlayerUUID"), team);
             }
         }
+        
+        BingoMod.GAME_STATE.read(tag.getCompoundTag("GameState"));
     }
 }

@@ -6,15 +6,22 @@ import java.util.List;
 import java.util.Random;
 
 import net.darkhax.bingo.BingoMod;
+import net.darkhax.bingo.api.BingoAPI;
 import net.darkhax.bingo.api.goal.Goal;
 import net.darkhax.bingo.api.goal.GoalTable;
+import net.darkhax.bingo.api.goal.GoalTier;
 import net.darkhax.bingo.api.team.Team;
+import net.darkhax.bingo.network.PacketSyncGoal;
 import net.minecraft.entity.item.EntityFireworkRocket;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.NBTTagList;
+import net.minecraft.nbt.NBTTagString;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.TextComponentTranslation;
 import net.minecraft.util.text.TextFormatting;
+import net.minecraftforge.common.util.Constants.NBT;
 import net.minecraftforge.fml.common.ObfuscationReflectionHelper;
 
 public class GameState {
@@ -26,6 +33,113 @@ public class GameState {
     private boolean isActive = false;
     private boolean hasStarted = false;
 
+    public void read(NBTTagCompound tag) {
+               
+        this.reset();
+        
+        System.out.println("Reading: " + tag);
+        if (tag != null) {
+            
+            System.out.println("Reading: " + tag.toString());
+            
+            this.table = BingoAPI.getGoalTable(tag.getString("GoalTable"));
+            
+            if (table != null) {
+                
+                System.out.println("Table: " + table.getName());
+                NBTTagList goalsTag = tag.getTagList("Goals", NBT.TAG_COMPOUND);
+                
+                for (int i = 0; i < goalsTag.tagCount(); i++) {
+                    
+                    NBTTagCompound goalTag = goalsTag.getCompoundTagAt(i);
+                    
+                    GoalTier tier = this.getTable().getTierByName(goalTag.getString("Tier"));
+                    Goal goal = tier.getGoalByName(goalTag.getString("Goal"));
+                    this.setGoal(goalTag.getInteger("X"), goalTag.getInteger("Y"), goal);
+                }
+                
+                NBTTagList completionTags = tag.getTagList("Completion", NBT.TAG_COMPOUND);
+                
+                for (int i = 0; i < completionTags.tagCount(); i++) {
+                    
+                    NBTTagCompound completionTag = completionTags.getCompoundTagAt(i);
+                    
+                    int x = completionTag.getInteger("X");
+                    int y = completionTag.getInteger("Y");
+                    
+                    NBTTagList teamsTag = completionTag.getTagList("Teams", NBT.TAG_STRING);
+                    
+                    for (int j = 0; j < teamsTag.tagCount(); j++) {
+                        
+                        Team team = Team.getTeamByName(teamsTag.getStringTagAt(j));
+                        this.completionStates[x][y][team.getTeamCorner()] = team;
+                    }
+                }
+            }
+            
+            this.isActive = tag.getBoolean("IsActive");
+            this.hasStarted = tag.getBoolean("HasStarted");
+        }
+    }
+    
+    public NBTTagCompound write() {
+        
+        System.out.println("Writing: " + this.isActive());
+        NBTTagCompound tag = new NBTTagCompound();
+        
+        if (this.getTable() != null) {
+          
+            tag.setString("GoalTable", this.getTable().getName());
+            
+            NBTTagList goals = new NBTTagList();
+            tag.setTag("Goals", goals);
+            
+            for (int x = 0; x < 5; x++) {
+                
+                for (int y = 0; y < 5; y++) {
+                    
+                    Goal goal = this.goals[x][y];
+                    NBTTagCompound goalTag = new NBTTagCompound();
+                    goalTag.setInteger("X", x);
+                    goalTag.setInteger("Y", y);
+                    goalTag.setString("Tier", goal.getTier());
+                    goalTag.setString("Goal", goal.getName());
+                    goals.appendTag(goalTag);
+                }
+            }
+                   
+            NBTTagList completionTag = new NBTTagList();
+            tag.setTag("Completion", completionTag);
+            
+            for (int x = 0; x < 5; x++) {
+                
+                for (int y = 0; y < 5; y++) {
+                    
+                    NBTTagCompound teamCompletionTag = new NBTTagCompound();
+                    teamCompletionTag.setInteger("X", x);
+                    teamCompletionTag.setInteger("Y", y);
+                    
+                    NBTTagList teamsTag = new NBTTagList();
+                    teamCompletionTag.setTag("Teams", teamsTag);
+                    for (Team completedTeam : this.completionStates[x][y]) {
+                        
+                        if (completedTeam != null) {
+                           
+                            teamsTag.appendTag(new NBTTagString(completedTeam.getTeamKey()));
+                        }
+                    }
+                    
+                    completionTag.appendTag(teamCompletionTag);
+                }
+            }
+        }
+        
+        tag.setBoolean("IsActive", this.isActive());
+        tag.setBoolean("HasStarted", this.isHasStarted());
+        
+        return tag;
+    }
+    
     public void create (Random random, GoalTable table) {
 
         this.reset();
@@ -49,9 +163,11 @@ public class GameState {
 
     public void reset () {
 
+        System.out.println("reset");
         this.goals = new Goal[5][5];
         this.completionStates = new Team[5][5][4];
         this.hasStarted = false;
+        this.isActive = false;
         this.table = null;
     }
 
@@ -69,10 +185,10 @@ public class GameState {
 
         final Team playerTeam = BingoPersistantData.getTeam(player);
 
-        this.completionStates[x][y][playerTeam.getTeamCorner()] = playerTeam;
+        if (player != null && this.completionStates[x][y][playerTeam.getTeamCorner()] == null) {
 
-        if (player != null) {
-
+            this.completionStates[x][y][playerTeam.getTeamCorner()] = playerTeam;
+            
             final Goal goal = this.getGoal(x, y);
 
             final ITextComponent playerName = player.getDisplayName();
@@ -82,12 +198,12 @@ public class GameState {
             itemName.getStyle().setColor(TextFormatting.GRAY);
 
             player.server.getPlayerList().sendMessage(new TextComponentTranslation("bingo.player.obtained", playerName, itemName));
-
+            BingoMod.NETWORK.sendToAll(new PacketSyncGoal(x, y, playerTeam.getTeamKey()));
             final EntityFireworkRocket rocket = new EntityFireworkRocket(player.getEntityWorld(), player.posX, player.posY, player.posZ, playerTeam.getFireworStack());
             ObfuscationReflectionHelper.setPrivateValue(EntityFireworkRocket.class, rocket, 0, "field_92055_b");
             player.getEntityWorld().spawnEntity(rocket);
-
-            System.out.println(playerTeam.getFireworStack().getTagCompound().toString());
+            player.world.setEntityState(rocket, (byte)17);
+            rocket.setDead();
         }
     }
 

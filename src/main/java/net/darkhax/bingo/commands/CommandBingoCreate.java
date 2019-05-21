@@ -5,9 +5,11 @@ import java.util.Random;
 import net.darkhax.bingo.BingoMod;
 import net.darkhax.bingo.api.BingoAPI;
 import net.darkhax.bingo.api.goal.GoalTable;
+import net.darkhax.bingo.network.PacketSyncGameState;
 import net.darkhax.bookshelf.command.Command;
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
+import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.text.TextComponentTranslation;
 
@@ -34,5 +36,6 @@ public class CommandBingoCreate extends Command {
 
         sender.sendMessage(new TextComponentTranslation("command.bingo.create.completed"));
         server.getPlayerList().sendMessage(new TextComponentTranslation("command.bingo.create.announce", sender.getDisplayName()));
+        BingoMod.NETWORK.sendToAll(new PacketSyncGameState(BingoMod.GAME_STATE.write()));
     }
 }
