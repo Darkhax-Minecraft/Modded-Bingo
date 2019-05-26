@@ -15,7 +15,7 @@ public class Goal extends WeightedRandom.Item {
         this.targetItem = targetItem;
         this.name = name;
         this.tier = table;
-        
+
         if (targetItem.isEmpty()) {
 
             throw new IllegalArgumentException("Item was air, this is not allowed!");
@@ -27,16 +27,16 @@ public class Goal extends WeightedRandom.Item {
         return this.targetItem;
     }
 
-    public String getTier() {
-        
+    public String getTier () {
+
         return this.tier;
     }
-    
-    public String getName() {
-        
+
+    public String getName () {
+
         return this.name;
     }
-    
+
     @Override
     public int hashCode () {
 

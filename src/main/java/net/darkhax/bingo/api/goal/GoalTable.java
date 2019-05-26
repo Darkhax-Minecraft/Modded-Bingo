@@ -43,9 +43,9 @@ public class GoalTable {
         this.tiersByName.put(name, tier);
         return tier;
     }
-    
-    public GoalTier getTierByName(String name) {
-        
+
+    public GoalTier getTierByName (String name) {
+
         return this.tiersByName.get(name);
     }
 }

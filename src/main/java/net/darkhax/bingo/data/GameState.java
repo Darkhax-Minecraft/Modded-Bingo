@@ -13,7 +13,6 @@ import net.darkhax.bingo.api.goal.GoalTier;
 import net.darkhax.bingo.api.team.Team;
 import net.darkhax.bingo.network.PacketSyncGoal;
 import net.darkhax.bookshelf.util.StackUtils;
-import net.minecraft.entity.item.EntityFireworkRocket;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
@@ -23,9 +22,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.TextComponentTranslation;
 import net.minecraft.util.text.TextFormatting;
-import net.minecraft.world.WorldServer;
 import net.minecraftforge.common.util.Constants.NBT;
-import net.minecraftforge.fml.common.ObfuscationReflectionHelper;
 
 public class GameState {
 
@@ -37,68 +34,68 @@ public class GameState {
     private boolean hasStarted = false;
     private Team winner = null;
 
-    public void read(NBTTagCompound tag) {
-               
+    public void read (NBTTagCompound tag) {
+
         this.reset();
-        
+
         if (tag != null) {
-            
+
             this.table = BingoAPI.getGoalTable(tag.getString("GoalTable"));
-            
-            if (table != null) {
-                
-                NBTTagList goalsTag = tag.getTagList("Goals", NBT.TAG_COMPOUND);
-                
+
+            if (this.table != null) {
+
+                final NBTTagList goalsTag = tag.getTagList("Goals", NBT.TAG_COMPOUND);
+
                 for (int i = 0; i < goalsTag.tagCount(); i++) {
-                    
-                    NBTTagCompound goalTag = goalsTag.getCompoundTagAt(i);
-                    
-                    GoalTier tier = this.getTable().getTierByName(goalTag.getString("Tier"));
-                    Goal goal = tier.getGoalByName(goalTag.getString("Goal"));
+
+                    final NBTTagCompound goalTag = goalsTag.getCompoundTagAt(i);
+
+                    final GoalTier tier = this.getTable().getTierByName(goalTag.getString("Tier"));
+                    final Goal goal = tier.getGoalByName(goalTag.getString("Goal"));
                     this.setGoal(goalTag.getInteger("X"), goalTag.getInteger("Y"), goal);
                 }
-                
-                NBTTagList completionTags = tag.getTagList("Completion", NBT.TAG_COMPOUND);
-                
+
+                final NBTTagList completionTags = tag.getTagList("Completion", NBT.TAG_COMPOUND);
+
                 for (int i = 0; i < completionTags.tagCount(); i++) {
-                    
-                    NBTTagCompound completionTag = completionTags.getCompoundTagAt(i);
-                    
-                    int x = completionTag.getInteger("X");
-                    int y = completionTag.getInteger("Y");
-                    
-                    NBTTagList teamsTag = completionTag.getTagList("Teams", NBT.TAG_STRING);
-                    
+
+                    final NBTTagCompound completionTag = completionTags.getCompoundTagAt(i);
+
+                    final int x = completionTag.getInteger("X");
+                    final int y = completionTag.getInteger("Y");
+
+                    final NBTTagList teamsTag = completionTag.getTagList("Teams", NBT.TAG_STRING);
+
                     for (int j = 0; j < teamsTag.tagCount(); j++) {
-                        
-                        Team team = Team.getTeamByName(teamsTag.getStringTagAt(j));
+
+                        final Team team = Team.getTeamByName(teamsTag.getStringTagAt(j));
                         this.completionStates[x][y][team.getTeamCorner()] = team;
                     }
                 }
             }
-            
+
             this.isActive = tag.getBoolean("IsActive");
             this.hasStarted = tag.getBoolean("HasStarted");
         }
     }
-    
-    public NBTTagCompound write() {
-        
-        NBTTagCompound tag = new NBTTagCompound();
-        
+
+    public NBTTagCompound write () {
+
+        final NBTTagCompound tag = new NBTTagCompound();
+
         if (this.getTable() != null) {
-          
+
             tag.setString("GoalTable", this.getTable().getName());
-            
-            NBTTagList goals = new NBTTagList();
+
+            final NBTTagList goals = new NBTTagList();
             tag.setTag("Goals", goals);
-            
+
             for (int x = 0; x < 5; x++) {
-                
+
                 for (int y = 0; y < 5; y++) {
-                    
-                    Goal goal = this.goals[x][y];
-                    NBTTagCompound goalTag = new NBTTagCompound();
+
+                    final Goal goal = this.goals[x][y];
+                    final NBTTagCompound goalTag = new NBTTagCompound();
                     goalTag.setInteger("X", x);
                     goalTag.setInteger("Y", y);
                     goalTag.setString("Tier", goal.getTier());
@@ -106,39 +103,39 @@ public class GameState {
                     goals.appendTag(goalTag);
                 }
             }
-                   
-            NBTTagList completionTag = new NBTTagList();
+
+            final NBTTagList completionTag = new NBTTagList();
             tag.setTag("Completion", completionTag);
-            
+
             for (int x = 0; x < 5; x++) {
-                
+
                 for (int y = 0; y < 5; y++) {
-                    
-                    NBTTagCompound teamCompletionTag = new NBTTagCompound();
+
+                    final NBTTagCompound teamCompletionTag = new NBTTagCompound();
                     teamCompletionTag.setInteger("X", x);
                     teamCompletionTag.setInteger("Y", y);
-                    
-                    NBTTagList teamsTag = new NBTTagList();
+
+                    final NBTTagList teamsTag = new NBTTagList();
                     teamCompletionTag.setTag("Teams", teamsTag);
-                    for (Team completedTeam : this.completionStates[x][y]) {
-                        
+                    for (final Team completedTeam : this.completionStates[x][y]) {
+
                         if (completedTeam != null) {
-                           
+
                             teamsTag.appendTag(new NBTTagString(completedTeam.getTeamKey()));
                         }
                     }
-                    
+
                     completionTag.appendTag(teamCompletionTag);
                 }
             }
         }
-        
+
         tag.setBoolean("IsActive", this.isActive());
         tag.setBoolean("HasStarted", this.isHasStarted());
-        
+
         return tag;
     }
-    
+
     public void create (Random random, GoalTable table) {
 
         this.reset();
@@ -187,7 +184,7 @@ public class GameState {
         if (player != null && this.completionStates[x][y][playerTeam.getTeamCorner()] == null) {
 
             this.completionStates[x][y][playerTeam.getTeamCorner()] = playerTeam;
-            
+
             final Goal goal = this.getGoal(x, y);
 
             final ITextComponent playerName = player.getDisplayName();
@@ -200,7 +197,7 @@ public class GameState {
             BingoMod.NETWORK.sendToAll(new PacketSyncGoal(x, y, playerTeam.getTeamKey()));
             playerTeam.spawnFirework(player);
         }
-        
+
         this.updateWinState(player.server);
     }
 
@@ -215,24 +212,24 @@ public class GameState {
     }
 
     public void updateWinState (MinecraftServer server) {
-        
+
         this.winner = this.checkWinState();
-        
+
         if (this.winner != null && this.isHasStarted() && this.isActive()) {
-            
+
             this.hasStarted = false;
-            
+
             server.getPlayerList().sendMessage(new TextComponentTranslation("bingo.winner", this.winner.getTeamName()));
-            
-            for (EntityPlayerMP player : server.getPlayerList().getPlayers()) {
-                
+
+            for (final EntityPlayerMP player : server.getPlayerList().getPlayers()) {
+
                 this.winner.spawnFirework(player);
                 this.winner.spawnFirework(player);
                 this.winner.spawnFirework(player);
             }
         }
     }
-    
+
     public Team checkWinState () {
 
         for (final Team team : BingoMod.TEAMS) {

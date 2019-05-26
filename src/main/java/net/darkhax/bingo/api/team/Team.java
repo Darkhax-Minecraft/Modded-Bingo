@@ -60,9 +60,9 @@ public class Team {
 
         return this.teamName;
     }
-    
-    public String getTeamKey() {
-        
+
+    public String getTeamKey () {
+
         return this.getDyeColor().getTranslationKey();
     }
 
@@ -87,15 +87,15 @@ public class Team {
         return this.fireworStack;
     }
 
-    public void spawnFirework(EntityPlayer player) {
-        
+    public void spawnFirework (EntityPlayer player) {
+
         final EntityFireworkRocket rocket = new EntityFireworkRocket(player.getEntityWorld(), player.posX, player.posY, player.posZ, this.getFireworStack());
         ObfuscationReflectionHelper.setPrivateValue(EntityFireworkRocket.class, rocket, 0, "field_92055_b");
         player.getEntityWorld().spawnEntity(rocket);
-        player.world.setEntityState(rocket, (byte)17);
+        player.world.setEntityState(rocket, (byte) 17);
         rocket.setDead();
     }
-    
+
     public static Team getTeamByName (String name) {
 
         return TEAMS_BY_NAME.get(name);

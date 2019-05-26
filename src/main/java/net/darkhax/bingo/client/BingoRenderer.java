@@ -29,24 +29,27 @@ public class BingoRenderer {
     @SubscribeEvent
     public static void render (TickEvent.RenderTickEvent event) {
 
-        Minecraft mc = Minecraft.getMinecraft();
-        
+        final Minecraft mc = Minecraft.getMinecraft();
+
         if (event.phase == Phase.END && BingoMod.GAME_STATE.isActive() && Minecraft.isGuiEnabled() && mc.currentScreen == null && !mc.gameSettings.showDebugInfo && !(mc.gameSettings.keyBindPlayerList.isKeyDown() && !mc.isIntegratedServerRunning())) {
-            
+
             final RenderItem itemRender = Minecraft.getMinecraft().getRenderItem();
             final EntityPlayerSP player = Minecraft.getMinecraft().player;
 
             GlStateManager.pushMatrix();
+
+            GlStateManager.color(1f, 1f, 1f, 1f);
 
             // Render the background image for the bingo board
             Minecraft.getMinecraft().renderEngine.bindTexture(new ResourceLocation("bingo", "hud/bingo_board.png"));
             final float texSize = 256f;
             Gui.drawModalRectWithCustomSizedTexture(10, 10, 0, 0, 132, 132, texSize, texSize);
 
-            // Render all the claim markers to the GUI. This is done as a single buffer to maximize performance. (Can be up to 100X more efficient)
+            // Render all the claim markers to the GUI. This is done as a single buffer to
+            // maximize performance. (Can be up to 100X more efficient)
             final BufferBuilder buffBuilder = Tessellator.getInstance().getBuffer();
             buffBuilder.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_TEX_COLOR);
-            
+
             for (int x = 0; x < 5; x++) {
 
                 for (int y = 0; y < 5; y++) {
@@ -86,10 +89,10 @@ public class BingoRenderer {
 
                 for (int y = 0; y < 5; y++) {
 
-                    Goal goal = BingoMod.GAME_STATE.getGoal(x, y);
-                    
+                    final Goal goal = BingoMod.GAME_STATE.getGoal(x, y);
+
                     if (goal != null) {
-                        
+
                         itemRender.renderItemAndEffectIntoGUI(player, goal.getTarget(), 16 + x * 24, 16 + y * 24);
                     }
                 }

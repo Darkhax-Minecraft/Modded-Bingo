@@ -30,7 +30,7 @@ import net.minecraftforge.fml.common.event.FMLServerStartedEvent;
 import net.minecraftforge.fml.common.event.FMLServerStoppingEvent;
 import net.minecraftforge.fml.relauncher.Side;
 
-@Mod(modid = "bingo", name = "Bingo", version = "@VERSION@", certificateFingerprint = "@FINGERPRINT@")
+@Mod(modid = "bingo", name = "Bingo", version = "@VERSION@", certificateFingerprint = "@FINGERPRINT@", dependencies = "required-after:bookshelf@[2.3.573,)")
 public class BingoMod {
 
     public static final GoalTable DEFAULT = BingoAPI.creteGoalTable("default");
@@ -43,14 +43,14 @@ public class BingoMod {
 
     public static final GameState GAME_STATE = new GameState();
     public static final NetworkHandler NETWORK = new NetworkHandler("bingo");
-    
+
     @EventHandler
-    public void preInit(FMLPreInitializationEvent event) {
-        
+    public void preInit (FMLPreInitializationEvent event) {
+
         NETWORK.register(PacketSyncGameState.class, Side.CLIENT);
         NETWORK.register(PacketSyncGoal.class, Side.CLIENT);
     }
-    
+
     @EventHandler
     public void init (FMLInitializationEvent event) {
 
@@ -136,7 +136,7 @@ public class BingoMod {
         easy.createGoal("glass_bottle", new ItemStack(Items.GLASS_BOTTLE), 10);
         easy.createGoal("flower_pot", new ItemStack(Items.FLOWER_POT), 20);
         easy.createGoal("fern", new ItemStack(Blocks.TALLGRASS, 1, 2), 5);
-        
+
         final GoalTier medium = table.createTier("medium", 32);
 
         // Medium

@@ -61,7 +61,7 @@ public class BingoPersistantData {
                 PLAYER_TEAMS.put(playerData.getUniqueId("PlayerUUID"), team);
             }
         }
-        
+
         BingoMod.GAME_STATE.read(tag.getCompoundTag("GameState"));
     }
 }

@@ -23,29 +23,29 @@ public class GoalTier extends WeightedRandom.Item {
         this.goalsByName = new HashMap<>();
     }
 
-    public Goal createGoal(String name, ItemStack target, int weight) {
-        
-        Goal goal = new Goal(this.name, name, target, weight);
+    public Goal createGoal (String name, ItemStack target, int weight) {
+
+        final Goal goal = new Goal(this.name, name, target, weight);
         this.goals.add(goal);
         this.goalsByName.put(goal.getName(), goal);
         return goal;
     }
 
-    public Goal getGoalByName(String name) {
-        
-        return goalsByName.get(name);
+    public Goal getGoalByName (String name) {
+
+        return this.goalsByName.get(name);
     }
-    
+
     public List<Goal> getGoals () {
 
         return this.goals;
     }
 
-    public String getName() {
-        
+    public String getName () {
+
         return this.name;
     }
-    
+
     public Goal getRandomGoal (Random rand) {
 
         return WeightedRandom.getRandomItem(rand, this.goals);
