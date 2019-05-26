@@ -51,7 +51,7 @@ public class CommandBingoTeam extends Command {
 
             if (team != null && sender instanceof EntityPlayer) {
 
-                sender.sendMessage(new TextComponentTranslation("command.bingo.team.change", team.getTeamName()));
+                server.getPlayerList().sendMessage(new TextComponentTranslation("command.bingo.team.change", sender.getName(), team.getTeamName()));
                 BingoPersistantData.setTeam((EntityPlayer) sender, team);
             }
 
