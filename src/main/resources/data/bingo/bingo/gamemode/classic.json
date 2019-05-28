@@ -1,0 +1,38 @@
+{
+  "modeId": "bingo:classic",
+  "goalTables": [],
+  "spawnEffects": [
+    {
+      "type": "bingo:randomize_spawn",
+      "setSpawn": true,
+      "fallbackBlock": "minecraft:bedrock",
+      "meta": 0
+    }
+  ],
+  "startingEffects": [
+    {
+      "type": "bingo:starting_time",
+      "time": 1000
+    }
+  ],
+  "itemCollectEffects": [
+    {
+      "type": "bingo:announcement"
+    },
+    {
+      "type": "bingo:firework"
+    },
+    {
+      "type": "bingo:shrink_item"
+    }
+  ],
+  "endingEffects": [
+    {
+      "type": "bingo:announcement"
+    },
+    {
+      "type": "bingo:firework"
+    }
+  ],
+  "gameplayEffects": []
+}

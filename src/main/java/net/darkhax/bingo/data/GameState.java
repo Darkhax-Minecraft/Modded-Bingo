@@ -7,6 +7,10 @@ import java.util.Random;
 
 import net.darkhax.bingo.BingoMod;
 import net.darkhax.bingo.api.BingoAPI;
+import net.darkhax.bingo.api.effects.collection.CollectionEffect;
+import net.darkhax.bingo.api.effects.ending.EndingEffect;
+import net.darkhax.bingo.api.effects.starting.StartingEffect;
+import net.darkhax.bingo.api.game.GameMode;
 import net.darkhax.bingo.api.goal.Goal;
 import net.darkhax.bingo.api.goal.GoalTable;
 import net.darkhax.bingo.api.goal.GoalTier;
@@ -26,6 +30,7 @@ import net.minecraftforge.common.util.Constants.NBT;
 
 public class GameState {
 
+    private GameMode mode;
     private GoalTable table;
     private Random random;
     private Goal[][] goals = new Goal[5][5];
@@ -33,6 +38,288 @@ public class GameState {
     private boolean isActive = false;
     private boolean hasStarted = false;
     private Team winner = null;
+
+    public void create (Random random, GoalTable table) {
+
+        this.reset();
+        this.table = table;
+        this.random = random;
+        this.rollGoals(random);
+        this.isActive = true;
+    }
+
+    public void start (MinecraftServer server) {
+
+        this.hasStarted = true;
+        
+        for (StartingEffect effect : this.mode.getStartingEffects()) {
+            
+            effect.onGameStarted(server);
+        }
+    }
+
+    public void end () {
+
+        this.hasStarted = false;
+        this.isActive = false;
+        this.reset();
+    }
+
+    public void reset () {
+
+        this.goals = new Goal[5][5];
+        this.completionStates = new Team[5][5][4];
+        this.hasStarted = false;
+        this.isActive = false;
+        this.table = null;
+        this.winner = null;
+    }
+
+    public Goal getGoal (int x, int y) {
+
+        return this.goals[x][y];
+    }
+
+    public void setGoal (int x, int y, Goal goal) {
+
+        this.goals[x][y] = goal;
+    }
+
+    public void setGoalComplete (EntityPlayerMP player, ItemStack item, int x, int y) {
+
+        final Team playerTeam = BingoPersistantData.getTeam(player);
+
+        if (player != null && this.completionStates[x][y][playerTeam.getTeamCorner()] == null) {
+
+            this.completionStates[x][y][playerTeam.getTeamCorner()] = playerTeam;
+
+            final Goal goal = this.getGoal(x, y);
+
+            for (CollectionEffect effect : this.getMode().getItemCollectEffects()) {
+                
+                effect.onItemCollected(player, item, playerTeam, goal);
+            }
+            
+            BingoMod.NETWORK.sendToAll(new PacketSyncGoal(x, y, playerTeam.getTeamKey()));
+        }
+
+        this.updateWinState(player.server);
+    }
+
+    public boolean hasCompletedGoal (int x, int y, Team team) {
+
+        return this.completionStates[x][y][team.getTeamCorner()] != null;
+    }
+
+    public Team[] getCompletionStats (int x, int y) {
+
+        return this.completionStates[x][y];
+    }
+
+    public void updateWinState (MinecraftServer server) {
+
+        this.winner = this.checkWinState();
+
+        if (this.winner != null && this.isHasStarted() && this.isActive()) {
+
+            this.hasStarted = false;
+
+            for (EndingEffect endEffect : this.mode.getEndingEffects()) {
+                
+                endEffect.onGameCompleted(server, this.winner);
+            }
+        }
+    }
+
+    public Team checkWinState () {
+
+        for (final Team team : BingoMod.TEAMS) {
+
+            // Check vertical lines
+            for (int x = 0; x < 5; x++) {
+
+                boolean hasFailed = false;
+
+                for (int y = 0; y < 5; y++) {
+
+                    if (!this.hasCompletedGoal(x, y, team)) {
+
+                        hasFailed = true;
+                        break;
+                    }
+                }
+
+                if (!hasFailed) {
+
+                    return team;
+                }
+            }
+
+            // Check horizontal lines
+            for (int y = 0; y < 5; y++) {
+
+                boolean hasFailed = false;
+
+                for (int x = 0; x < 5; x++) {
+
+                    if (!this.hasCompletedGoal(x, y, team)) {
+
+                        hasFailed = true;
+                        break;
+                    }
+                }
+
+                if (!hasFailed) {
+
+                    return team;
+                }
+            }
+
+            // Check one horizontal line
+            if (this.hasCompletedGoal(0, 0, team) && this.hasCompletedGoal(1, 1, team) && this.hasCompletedGoal(2, 2, team) && this.hasCompletedGoal(3, 3, team) && this.hasCompletedGoal(4, 4, team)) {
+
+                return team;
+            }
+
+            // Check other horizontal line
+            if (this.hasCompletedGoal(0, 4, team) && this.hasCompletedGoal(1, 3, team) && this.hasCompletedGoal(2, 2, team) && this.hasCompletedGoal(3, 1, team) && this.hasCompletedGoal(4, 0, team)) {
+
+                return team;
+            }
+        }
+
+        return null;
+    }
+
+    public void onPlayerPickupItem (EntityPlayerMP player, ItemStack stack) {
+
+        if (BingoMod.GAME_STATE.isHasStarted()) {
+
+            for (int x = 0; x < 5; x++) {
+
+                for (int y = 0; y < 5; y++) {
+
+                    final Goal goal = this.getGoal(x, y);
+
+                    if (StackUtils.areStacksSimilar(goal.getTarget(), stack)) {
+
+                        this.setGoalComplete(player, stack, x, y);
+                    }
+                }
+            }
+        }
+    }
+
+    public void rollGoals (Random rand) {
+
+        final List<Goal> generatedGoals = new ArrayList<>();
+
+        for (int i = 0; i < 25; i++) {
+
+            Goal goal = null;
+
+            while (goal == null) {
+
+                final Goal randGoal = this.table.getRandomTier(rand).getRandomGoal(rand);
+
+                if (!generatedGoals.contains(randGoal)) {
+
+                    goal = randGoal;
+                }
+
+            }
+
+            generatedGoals.add(goal);
+        }
+
+        Collections.shuffle(generatedGoals);
+
+        int xOff = 0;
+        int yOff = 0;
+
+        for (final Goal goal : generatedGoals) {
+
+            this.setGoal(xOff, yOff, goal);
+
+            xOff++;
+            if (xOff == 5) {
+
+                xOff = 0;
+                yOff++;
+            }
+        }
+    }
+
+    public GoalTable getTable () {
+
+        return this.table;
+    }
+
+    public void setTable (GoalTable table) {
+
+        this.table = table;
+    }
+
+    public Random getRandom () {
+
+        return this.random;
+    }
+
+    public void setRandom (Random random) {
+
+        this.random = random;
+    }
+
+    public Goal[][] getGoals () {
+
+        return this.goals;
+    }
+
+    public void setGoals (Goal[][] goals) {
+
+        this.goals = goals;
+    }
+
+    public Team[][][] getCompletionStates () {
+
+        return this.completionStates;
+    }
+
+    public void setCompletionStates (Team[][][] completionStates) {
+
+        this.completionStates = completionStates;
+    }
+
+    public boolean isHasStarted () {
+
+        return this.hasStarted;
+    }
+
+    public void setHasStarted (boolean hasStarted) {
+
+        this.hasStarted = hasStarted;
+    }
+
+    public boolean isActive () {
+
+        return this.isActive;
+    }
+
+    public Team getWinner () {
+        
+        return winner;
+    }
+
+    public void setWinner (Team winner) {
+        
+        this.winner = winner;
+    }
+
+    public GameMode getMode () {
+        
+        return mode;
+    }
+    
 
     public void read (NBTTagCompound tag) {
 
@@ -134,273 +421,5 @@ public class GameState {
         tag.setBoolean("HasStarted", this.isHasStarted());
 
         return tag;
-    }
-
-    public void create (Random random, GoalTable table) {
-
-        this.reset();
-        this.table = table;
-        this.random = random;
-        this.rollGoals(random);
-        this.isActive = true;
-    }
-
-    public void start () {
-
-        this.hasStarted = true;
-    }
-
-    public void end () {
-
-        this.hasStarted = false;
-        this.isActive = false;
-        this.reset();
-    }
-
-    public void reset () {
-
-        this.goals = new Goal[5][5];
-        this.completionStates = new Team[5][5][4];
-        this.hasStarted = false;
-        this.isActive = false;
-        this.table = null;
-        this.winner = null;
-    }
-
-    public Goal getGoal (int x, int y) {
-
-        return this.goals[x][y];
-    }
-
-    public void setGoal (int x, int y, Goal goal) {
-
-        this.goals[x][y] = goal;
-    }
-
-    public void setGoalComplete (EntityPlayerMP player, int x, int y) {
-
-        final Team playerTeam = BingoPersistantData.getTeam(player);
-
-        if (player != null && this.completionStates[x][y][playerTeam.getTeamCorner()] == null) {
-
-            this.completionStates[x][y][playerTeam.getTeamCorner()] = playerTeam;
-
-            final Goal goal = this.getGoal(x, y);
-
-            final ITextComponent playerName = player.getDisplayName();
-            playerName.getStyle().setColor(playerTeam.getTeamColorText());
-
-            final ITextComponent itemName = goal.getTarget().getTextComponent();
-            itemName.getStyle().setColor(TextFormatting.GRAY);
-
-            player.server.getPlayerList().sendMessage(new TextComponentTranslation("bingo.player.obtained", playerName, itemName));
-            BingoMod.NETWORK.sendToAll(new PacketSyncGoal(x, y, playerTeam.getTeamKey()));
-            playerTeam.spawnFirework(player);
-        }
-
-        this.updateWinState(player.server);
-    }
-
-    public boolean hasCompletedGoal (int x, int y, Team team) {
-
-        return this.completionStates[x][y][team.getTeamCorner()] != null;
-    }
-
-    public Team[] getCompletionStats (int x, int y) {
-
-        return this.completionStates[x][y];
-    }
-
-    public void updateWinState (MinecraftServer server) {
-
-        this.winner = this.checkWinState();
-
-        if (this.winner != null && this.isHasStarted() && this.isActive()) {
-
-            this.hasStarted = false;
-
-            server.getPlayerList().sendMessage(new TextComponentTranslation("bingo.winner", this.winner.getTeamName()));
-
-            for (final EntityPlayerMP player : server.getPlayerList().getPlayers()) {
-
-                this.winner.spawnFirework(player);
-                this.winner.spawnFirework(player);
-                this.winner.spawnFirework(player);
-            }
-        }
-    }
-
-    public Team checkWinState () {
-
-        for (final Team team : BingoMod.TEAMS) {
-
-            // Check vertical lines
-            for (int x = 0; x < 5; x++) {
-
-                boolean hasFailed = false;
-
-                for (int y = 0; y < 5; y++) {
-
-                    if (!this.hasCompletedGoal(x, y, team)) {
-
-                        hasFailed = true;
-                        break;
-                    }
-                }
-
-                if (!hasFailed) {
-
-                    return team;
-                }
-            }
-
-            // Check horizontal lines
-            for (int y = 0; y < 5; y++) {
-
-                boolean hasFailed = false;
-
-                for (int x = 0; x < 5; x++) {
-
-                    if (!this.hasCompletedGoal(x, y, team)) {
-
-                        hasFailed = true;
-                        break;
-                    }
-                }
-
-                if (!hasFailed) {
-
-                    return team;
-                }
-            }
-
-            // Check one horizontal line
-            if (this.hasCompletedGoal(0, 0, team) && this.hasCompletedGoal(1, 1, team) && this.hasCompletedGoal(2, 2, team) && this.hasCompletedGoal(3, 3, team) && this.hasCompletedGoal(4, 4, team)) {
-
-                return team;
-            }
-
-            // Check other horizontal line
-            if (this.hasCompletedGoal(0, 4, team) && this.hasCompletedGoal(1, 3, team) && this.hasCompletedGoal(2, 2, team) && this.hasCompletedGoal(3, 1, team) && this.hasCompletedGoal(4, 0, team)) {
-
-                return team;
-            }
-        }
-
-        return null;
-    }
-
-    public void onPlayerPickupItem (EntityPlayerMP player, ItemStack stack) {
-
-        if (BingoMod.GAME_STATE.isHasStarted()) {
-
-            for (int x = 0; x < 5; x++) {
-
-                for (int y = 0; y < 5; y++) {
-
-                    final Goal goal = this.getGoal(x, y);
-
-                    if (StackUtils.areStacksSimilar(goal.getTarget(), stack)) {
-
-                        this.setGoalComplete(player, x, y);
-                    }
-                }
-            }
-        }
-    }
-
-    public void rollGoals (Random rand) {
-
-        final List<Goal> generatedGoals = new ArrayList<>();
-
-        for (int i = 0; i < 25; i++) {
-
-            Goal goal = null;
-
-            while (goal == null) {
-
-                final Goal randGoal = this.table.getRandomTier(rand).getRandomGoal(rand);
-
-                if (!generatedGoals.contains(randGoal)) {
-
-                    goal = randGoal;
-                }
-
-            }
-
-            generatedGoals.add(goal);
-        }
-
-        Collections.shuffle(generatedGoals);
-
-        int xOff = 0;
-        int yOff = 0;
-
-        for (final Goal goal : generatedGoals) {
-
-            this.setGoal(xOff, yOff, goal);
-
-            xOff++;
-            if (xOff == 5) {
-
-                xOff = 0;
-                yOff++;
-            }
-        }
-    }
-
-    public GoalTable getTable () {
-
-        return this.table;
-    }
-
-    public void setTable (GoalTable table) {
-
-        this.table = table;
-    }
-
-    public Random getRandom () {
-
-        return this.random;
-    }
-
-    public void setRandom (Random random) {
-
-        this.random = random;
-    }
-
-    public Goal[][] getGoals () {
-
-        return this.goals;
-    }
-
-    public void setGoals (Goal[][] goals) {
-
-        this.goals = goals;
-    }
-
-    public Team[][][] getCompletionStates () {
-
-        return this.completionStates;
-    }
-
-    public void setCompletionStates (Team[][][] completionStates) {
-
-        this.completionStates = completionStates;
-    }
-
-    public boolean isHasStarted () {
-
-        return this.hasStarted;
-    }
-
-    public void setHasStarted (boolean hasStarted) {
-
-        this.hasStarted = hasStarted;
-    }
-
-    public boolean isActive () {
-
-        return this.isActive;
     }
 }

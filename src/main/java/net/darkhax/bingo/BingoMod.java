@@ -3,6 +3,9 @@ package net.darkhax.bingo;
 import java.io.File;
 import java.io.IOException;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import net.darkhax.bingo.api.BingoAPI;
 import net.darkhax.bingo.api.goal.GoalTable;
 import net.darkhax.bingo.api.goal.GoalTier;
@@ -42,7 +45,9 @@ public class BingoMod {
     public static final Team[] TEAMS = new Team[] { TEAM_RED, TEAM_YELLOW, TEAM_GREEN, TEAM_BLUE };
 
     public static final GameState GAME_STATE = new GameState();
-    public static final NetworkHandler NETWORK = new NetworkHandler("bingo");
+    public static final String MOD_ID = "bingo";
+    public static final NetworkHandler NETWORK = new NetworkHandler(MOD_ID);
+    public static final Logger LOG = LogManager.getLogger("Bingo");
 
     @EventHandler
     public void preInit (FMLPreInitializationEvent event) {
