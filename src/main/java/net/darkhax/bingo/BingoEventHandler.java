@@ -18,7 +18,7 @@ public class BingoEventHandler {
 
         if (event.player instanceof EntityPlayerMP && BingoAPI.GAME_STATE.hasStarted()) {
 
-            BingoAPI.GAME_STATE.onPlayerPickupItem((EntityPlayerMP) event.player, event.getStack());
+            BingoAPI.GAME_STATE.onPlayerPickupItem((EntityPlayerMP) event.player, event.getOriginalEntity().getItem());
         }
     }
 
