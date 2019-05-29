@@ -34,7 +34,6 @@ public class CommandBingoCreate extends Command {
         final Random random = args.length >= 2 ? new Random(args[1].hashCode()) : new Random();
         BingoMod.GAME_STATE.create(random, gameMode);
 
-        sender.sendMessage(new TextComponentTranslation("command.bingo.create.completed"));
         server.getPlayerList().sendMessage(new TextComponentTranslation("command.bingo.create.announce", sender.getDisplayName()));
         BingoMod.NETWORK.sendToAll(new PacketSyncGameState(BingoMod.GAME_STATE.write()));
     }
