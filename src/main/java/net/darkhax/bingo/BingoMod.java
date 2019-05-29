@@ -66,7 +66,8 @@ public class BingoMod {
 
             catch (final IOException e) {
 
-                e.printStackTrace();
+                LOG.warn("Failed to read bingo data. This is not good.");
+                LOG.catching(e);
             }
         }
     }
@@ -84,7 +85,8 @@ public class BingoMod {
 
         catch (final IOException e) {
 
-            e.printStackTrace();
+            LOG.error("Failed to write bingo data. This is not good.");
+            LOG.catching(e);
         }
     }
 }
