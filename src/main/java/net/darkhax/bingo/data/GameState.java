@@ -52,7 +52,7 @@ public class GameState {
     /**
      * A two dimensional array of all items that must be acquired to win.
      */
-    private final ItemStack[][] goals = new ItemStack[5][5];
+    private ItemStack[][] goals = new ItemStack[5][5];
 
     /**
      * A three dimensional array of which teams have what goals.
@@ -441,6 +441,15 @@ public class GameState {
      */
     public void read (NBTTagCompound tag) {
 
+        this.isActive = false;
+        this.hasStarted = false;
+        this.mode = null;
+        this.table = null;
+        this.winner = null;
+        this.random = null;
+        this.goals = new ItemStack[5][5];
+        this.completionStates = new Team[5][5][4];
+        
         if (tag != null) {
 
             // Read basic game data

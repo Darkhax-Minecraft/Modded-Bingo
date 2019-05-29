@@ -70,6 +70,12 @@ public class BingoMod {
                 LOG.catching(e);
             }
         }
+        
+        else {
+            
+            // reset the game state
+            BingoAPI.GAME_STATE.read(null);
+        }
     }
 
     @EventHandler
