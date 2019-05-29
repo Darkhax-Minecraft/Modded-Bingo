@@ -1,6 +1,7 @@
 package net.darkhax.bingo.commands;
 
 import net.darkhax.bingo.BingoMod;
+import net.darkhax.bingo.api.BingoAPI;
 import net.darkhax.bingo.network.PacketSyncGameState;
 import net.darkhax.bookshelf.command.Command;
 import net.minecraft.command.CommandException;
@@ -24,12 +25,12 @@ public class CommandBingoReroll extends Command {
     @Override
     public void execute (MinecraftServer server, ICommandSender sender, String[] args) throws CommandException {
 
-        if (!BingoMod.GAME_STATE.isActive()) {
+        if (!BingoAPI.GAME_STATE.isActive()) {
 
             throw new CommandException("command.bingo.info.notactive");
         }
 
-        BingoMod.GAME_STATE.rollGoals(BingoMod.GAME_STATE.getRandom());
-        BingoMod.NETWORK.sendToAll(new PacketSyncGameState(BingoMod.GAME_STATE.write()));
+        BingoAPI.GAME_STATE.rollGoals(BingoAPI.GAME_STATE.getRandom());
+        BingoMod.NETWORK.sendToAll(new PacketSyncGameState(BingoAPI.GAME_STATE.write()));
     }
 }

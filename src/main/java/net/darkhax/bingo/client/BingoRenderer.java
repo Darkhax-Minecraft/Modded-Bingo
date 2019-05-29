@@ -2,7 +2,7 @@ package net.darkhax.bingo.client;
 
 import org.lwjgl.opengl.GL11;
 
-import net.darkhax.bingo.BingoMod;
+import net.darkhax.bingo.api.BingoAPI;
 import net.darkhax.bingo.api.team.Team;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.EntityPlayerSP;
@@ -24,6 +24,10 @@ import net.minecraftforge.fml.relauncher.Side;
 @EventBusSubscriber(value = Side.CLIENT, modid = "bingo")
 public class BingoRenderer {
 
+    /**
+     * An array of UV coordinate offsets related to the team corners. This is used to render
+     * the highlight when a team has completed a goal.
+     */
     private static final int[][] teamUVs = new int[][] { new int[] { 0, 0, 11, 11 }, new int[] { 11, 0, 11, 11 }, new int[] { 0, 11, 11, 11 }, new int[] { 11, 11, 11, 11 } };
 
     @SubscribeEvent
@@ -31,13 +35,16 @@ public class BingoRenderer {
 
         final Minecraft mc = Minecraft.getMinecraft();
 
-        if (event.phase == Phase.END && BingoMod.GAME_STATE.isActive() && Minecraft.isGuiEnabled() && mc.currentScreen == null && !mc.gameSettings.showDebugInfo && !(mc.gameSettings.keyBindPlayerList.isKeyDown() && !mc.isIntegratedServerRunning())) {
+        // Prevent shwoing the game board while crafting, in a gui, on the debug screen, or in
+        // the player tab list.
+        if (event.phase == Phase.END && BingoAPI.GAME_STATE.isActive() && Minecraft.isGuiEnabled() && mc.currentScreen == null && !mc.gameSettings.showDebugInfo && !(mc.gameSettings.keyBindPlayerList.isKeyDown() && !mc.isIntegratedServerRunning())) {
 
             final RenderItem itemRender = Minecraft.getMinecraft().getRenderItem();
             final EntityPlayerSP player = Minecraft.getMinecraft().player;
 
             GlStateManager.pushMatrix();
 
+            // Reset the color, to prevent prior render code from changing the board's color.
             GlStateManager.color(1f, 1f, 1f, 1f);
 
             // Render the background image for the bingo board
@@ -54,7 +61,7 @@ public class BingoRenderer {
 
                 for (int y = 0; y < 5; y++) {
 
-                    final Team[] completedTeams = BingoMod.GAME_STATE.getCompletionStats(x, y);
+                    final Team[] completedTeams = BingoAPI.GAME_STATE.getCompletionStats(x, y);
 
                     for (final Team team : completedTeams) {
 
@@ -89,7 +96,7 @@ public class BingoRenderer {
 
                 for (int y = 0; y < 5; y++) {
 
-                    final ItemStack goal = BingoMod.GAME_STATE.getGoal(x, y);
+                    final ItemStack goal = BingoAPI.GAME_STATE.getGoal(x, y);
 
                     if (goal != null) {
 
@@ -103,5 +110,4 @@ public class BingoRenderer {
             GlStateManager.popMatrix();
         }
     }
-
 }

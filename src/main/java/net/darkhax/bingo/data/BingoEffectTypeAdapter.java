@@ -11,10 +11,22 @@ import com.google.gson.JsonObject;
 
 import net.darkhax.bingo.BingoMod;
 
+/**
+ * A type adapter for Gson that will map bingo effects based on an ID switch.
+ */
 public class BingoEffectTypeAdapter<T> implements JsonDeserializer<T> {
 
+    /**
+     * A mapping of type IDs to their respective classes.
+     */
     private final Map<String, Class<? extends T>> effectClasses = new HashMap<>();
 
+    /**
+     * Registers a new type that can be switched to.
+     *
+     * @param key The key for identifying the type.
+     * @param effectClass The class to switch to.
+     */
     public void registerEffect (String key, Class<? extends T> effectClass) {
 
         if (this.effectClasses.containsKey(key)) {

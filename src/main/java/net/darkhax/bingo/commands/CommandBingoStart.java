@@ -1,6 +1,7 @@
 package net.darkhax.bingo.commands;
 
 import net.darkhax.bingo.BingoMod;
+import net.darkhax.bingo.api.BingoAPI;
 import net.darkhax.bingo.api.effects.spawn.SpawnEffect;
 import net.darkhax.bingo.network.PacketSyncGameState;
 import net.darkhax.bookshelf.command.Command;
@@ -31,23 +32,23 @@ public class CommandBingoStart extends Command {
     @Override
     public void execute (MinecraftServer server, ICommandSender sender, String[] args) throws CommandException {
 
-        if (!BingoMod.GAME_STATE.isActive()) {
+        if (!BingoAPI.GAME_STATE.isActive()) {
 
             throw new CommandException("command.bingo.info.notactive");
         }
 
-        if (BingoMod.GAME_STATE.isHasStarted()) {
+        if (BingoAPI.GAME_STATE.hasStarted()) {
 
             throw new CommandException("command.bingo.info.alreadystarted");
         }
 
-        BingoMod.GAME_STATE.start(server);
+        BingoAPI.GAME_STATE.start(server);
         server.getPlayerList().sendMessage(new TextComponentTranslation("command.bingo.start.started", sender.getDisplayName()));
-        BingoMod.NETWORK.sendToAll(new PacketSyncGameState(BingoMod.GAME_STATE.write()));
+        BingoMod.NETWORK.sendToAll(new PacketSyncGameState(BingoAPI.GAME_STATE.write()));
 
         for (final EntityPlayerMP player : server.getPlayerList().getPlayers()) {
 
-            for (final SpawnEffect effect : BingoMod.GAME_STATE.getMode().getSpawnEffect()) {
+            for (final SpawnEffect effect : BingoAPI.GAME_STATE.getMode().getSpawnEffect()) {
 
                 effect.onPlayerSpawn(player, this.getRandomPosition(player.world));
             }

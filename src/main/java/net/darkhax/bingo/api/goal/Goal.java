@@ -6,18 +6,22 @@ import net.darkhax.bingo.data.WeightedObject;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 
+/**
+ * Represents a goal that players may have to complete.
+ */
 public class Goal extends WeightedObject {
 
+    /**
+     * The goal item that must be collected.
+     */
     @Expose
     private Item item;
 
+    /**
+     * The meta for the item.
+     */
     @Expose
     private int meta;
-
-    public Goal (int itemWeightIn) {
-
-        super(itemWeightIn);
-    }
 
     public ItemStack getTarget () {
 

@@ -5,8 +5,14 @@ import com.google.gson.annotations.Expose;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.WorldServer;
 
+/**
+ * This effect will change the world time when the game starts.
+ */
 public class StartingEffectTime extends StartingEffect {
 
+    /**
+     * The time to set the world to.
+     */
     @Expose
     private long time;
 

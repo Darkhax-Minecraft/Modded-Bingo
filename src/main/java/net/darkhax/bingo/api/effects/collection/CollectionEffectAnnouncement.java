@@ -7,6 +7,10 @@ import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.TextComponentTranslation;
 import net.minecraft.util.text.TextFormatting;
 
+/**
+ * This effect is used to announce when a player/team obtains an item that would complete a
+ * goal on the board.
+ */
 public class CollectionEffectAnnouncement extends CollectionEffect {
 
     @Override

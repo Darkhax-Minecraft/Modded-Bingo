@@ -6,11 +6,12 @@ import java.util.List;
 import java.util.Random;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 import net.darkhax.bingo.BingoMod;
 import net.darkhax.bingo.api.BingoAPI;
 import net.darkhax.bingo.api.effects.collection.CollectionEffect;
-import net.darkhax.bingo.api.effects.ending.EndingEffect;
+import net.darkhax.bingo.api.effects.ending.GameWinEffect;
 import net.darkhax.bingo.api.effects.starting.StartingEffect;
 import net.darkhax.bingo.api.game.GameMode;
 import net.darkhax.bingo.api.goal.Goal;
@@ -27,17 +28,59 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.common.util.Constants.NBT;
 
+/**
+ * This class represents the current and active gamestate. On the server is is the controller
+ * of the game, while on the client it is just used for rendering.
+ */
 public class GameState {
 
+    /**
+     * The game mode that was used when creating the game.
+     */
     private GameMode mode;
+
+    /**
+     * The goal table used to populate {@link #goals}.
+     */
     private GoalTable table;
+
+    /**
+     * An instance of random that is used when generating this game.
+     */
     private Random random;
+
+    /**
+     * A two dimensional array of all items that must be acquired to win.
+     */
     private final ItemStack[][] goals = new ItemStack[5][5];
+
+    /**
+     * A three dimensional array of which teams have what goals.
+     */
     private Team[][][] completionStates = new Team[5][5][4];
+
+    /**
+     * Whether or not the game is active. The game will only render if this is true.
+     */
     private boolean isActive = false;
+
+    /**
+     * Whether or not the game has been started. The state will not update while this is false.
+     */
     private boolean hasStarted = false;
+
+    /**
+     * The team that has won the game. This can be null.
+     */
+    @Nullable
     private Team winner = null;
 
+    /**
+     * Creates a new game.
+     *
+     * @param random An instance of random.
+     * @param mode The mode to play.
+     */
     public void create (Random random, GameMode mode) {
 
         this.mode = mode;
@@ -49,6 +92,11 @@ public class GameState {
         this.completionStates = new Team[5][5][4];
     }
 
+    /**
+     * Starts the game, and allows the state to change.
+     *
+     * @param server The server instance.
+     */
     public void start (MinecraftServer server) {
 
         this.hasStarted = true;
@@ -59,6 +107,9 @@ public class GameState {
         }
     }
 
+    /**
+     * Ends a game. This will hide the board, and reset all the states.
+     */
     public void end () {
 
         this.hasStarted = false;
@@ -67,16 +118,38 @@ public class GameState {
         this.table = null;
     }
 
+    /**
+     * Gets the goal item for a position on the bingo board.
+     *
+     * @param x The x pos of the item.
+     * @param y The y pos of the item.
+     * @return The item for the goal.
+     */
     public ItemStack getGoal (int x, int y) {
 
         return this.goals[x][y];
     }
 
+    /**
+     * Sets the goal item for a position on the bingo board.
+     *
+     * @param x The x pos of the item.
+     * @param y The y pos of the item.
+     * @param goal The item for the goal to be.
+     */
     public void setGoal (int x, int y, ItemStack goal) {
 
         this.goals[x][y] = goal;
     }
 
+    /**
+     * Sets a goal as being completed.
+     *
+     * @param player The player who completed the goal.
+     * @param item The item that was obtained.
+     * @param x The x pos of the goal.
+     * @param y The y pos of the goal.
+     */
     public void setGoalComplete (@Nonnull EntityPlayerMP player, ItemStack item, int x, int y) {
 
         final Team playerTeam = BingoPersistantData.getTeam(player);
@@ -96,34 +169,60 @@ public class GameState {
         this.updateWinState(player.server);
     }
 
+    /**
+     * Checks if a team has completed a goal.
+     *
+     * @param x The x pos of the goal.
+     * @param y The y pos of the goal.
+     * @param team The team to check for.
+     * @return Whether or not the team has completed the goal.
+     */
     public boolean hasCompletedGoal (int x, int y, Team team) {
 
         return this.completionStates[x][y][team.getTeamCorner()] != null;
     }
 
+    /**
+     * Get all completion states for a goal.
+     *
+     * @param x The x pos of the goal.
+     * @param y The y pos of the goal.
+     * @return An array of teams that have completed the goal.
+     */
     public Team[] getCompletionStats (int x, int y) {
 
         return this.completionStates[x][y];
     }
 
+    /**
+     * Updates the win state for the game by checking if anyone has won the game.
+     *
+     * @param server An instance of the server.
+     */
     public void updateWinState (MinecraftServer server) {
 
         this.winner = this.checkWinState();
 
-        if (this.winner != null && this.isHasStarted() && this.isActive()) {
+        if (this.winner != null && this.hasStarted() && this.isActive()) {
 
             this.hasStarted = false;
 
-            for (final EndingEffect endEffect : this.mode.getEndingEffects()) {
+            for (final GameWinEffect endEffect : this.mode.getWinEffects()) {
 
                 endEffect.onGameCompleted(server, this.winner);
             }
         }
     }
 
+    /**
+     * Looks at the board data to find a team that has won the game.
+     *
+     * @return The team that won the game. This will be null if no team has won yet.
+     */
+    @Nullable
     public Team checkWinState () {
 
-        for (final Team team : BingoMod.TEAMS) {
+        for (final Team team : BingoAPI.TEAMS) {
 
             // Check vertical lines
             for (int x = 0; x < 5; x++) {
@@ -181,9 +280,15 @@ public class GameState {
         return null;
     }
 
+    /**
+     * Handles a player acquiring a new item.
+     *
+     * @param player The player to check for.
+     * @param stack The item they acquired.
+     */
     public void onPlayerPickupItem (EntityPlayerMP player, ItemStack stack) {
 
-        if (BingoMod.GAME_STATE.isHasStarted()) {
+        if (BingoAPI.GAME_STATE.hasStarted()) {
 
             for (int x = 0; x < 5; x++) {
 
@@ -200,6 +305,11 @@ public class GameState {
         }
     }
 
+    /**
+     * Randomizes the goals for the board.
+     *
+     * @param rand An instance of random.
+     */
     public void rollGoals (Random rand) {
 
         final List<Goal> generatedGoals = new ArrayList<>();
@@ -240,80 +350,108 @@ public class GameState {
         }
     }
 
+    /**
+     * Gets the goal table. This can be null if the game hasn't started.
+     *
+     * @return The goal table being used.
+     */
+    @Nullable
     public GoalTable getTable () {
 
         return this.table;
     }
 
-    public void setTable (GoalTable table) {
-
-        this.table = table;
-    }
-
+    /**
+     * Gets the random instance for the game. This can be null if the game hasn't started.
+     *
+     * @return The random instance for the goal.
+     */
+    @Nullable
     public Random getRandom () {
 
         return this.random;
     }
 
-    public void setRandom (Random random) {
-
-        this.random = random;
-    }
-
+    /**
+     * Gets all the items used as goals.
+     *
+     * @return All the goal items.
+     */
     public ItemStack[][] getGoals () {
 
         return this.goals;
     }
 
+    /**
+     * Gets all the completion states.
+     *
+     * @return All the completion states.
+     */
     public Team[][][] getCompletionStates () {
 
         return this.completionStates;
     }
 
-    public void setCompletionStates (Team[][][] completionStates) {
-
-        this.completionStates = completionStates;
-    }
-
-    public boolean isHasStarted () {
+    /**
+     * Checks if the game has started or not.
+     *
+     * @return Whether or not the game has started.
+     */
+    public boolean hasStarted () {
 
         return this.hasStarted;
     }
 
-    public void setHasStarted (boolean hasStarted) {
-
-        this.hasStarted = hasStarted;
-    }
-
+    /**
+     * Checks if the game is active or not.
+     *
+     * @return Whether or not the game is active.
+     */
     public boolean isActive () {
 
         return this.isActive;
     }
 
+    /**
+     * Gets the team that has won the game. This will be null if there is no winner.
+     *
+     * @return The team that won the game.
+     */
+    @Nullable
     public Team getWinner () {
 
         return this.winner;
     }
 
-    public void setWinner (Team winner) {
-
-        this.winner = winner;
-    }
-
+    /**
+     * Gets the current game mode. This can be null if the game hasn't started yet.
+     *
+     * @return The current game mode.
+     */
+    @Nullable
     public GameMode getMode () {
 
         return this.mode;
     }
 
+    /**
+     * Reads the game state from an NBT tag.
+     *
+     * @param tag The tag to read the game state from.
+     */
     public void read (NBTTagCompound tag) {
 
         if (tag != null) {
 
+            // Read basic game data
             this.mode = BingoAPI.getGameMode(new ResourceLocation(tag.getString("GameMode")));
             this.table = BingoAPI.getGoalTable(new ResourceLocation(tag.getString("GoalTable")));
+            this.isActive = tag.getBoolean("IsActive");
+            this.hasStarted = tag.getBoolean("HasStarted");
 
             if (this.table != null) {
 
+                // Read the goal items
                 final NBTTagList goalsTag = tag.getTagList("Goals", NBT.TAG_COMPOUND);
 
                 for (int i = 0; i < goalsTag.tagCount(); i++) {
@@ -322,6 +460,7 @@ public class GameState {
                     this.setGoal(goalTag.getInteger("X"), goalTag.getInteger("Y"), new ItemStack(goalTag.getCompoundTag("ItemStack")));
                 }
 
+                // Read the completion states
                 final NBTTagList completionTags = tag.getTagList("Completion", NBT.TAG_COMPOUND);
 
                 for (int i = 0; i < completionTags.tagCount(); i++) {
@@ -340,21 +479,28 @@ public class GameState {
                     }
                 }
             }
-
-            this.isActive = tag.getBoolean("IsActive");
-            this.hasStarted = tag.getBoolean("HasStarted");
         }
     }
 
+    /**
+     * Writes the current game state to an nbt tag.
+     *
+     * @return The tag that contains the state data.
+     */
     public NBTTagCompound write () {
 
         final NBTTagCompound tag = new NBTTagCompound();
 
+        tag.setBoolean("IsActive", this.isActive());
+        tag.setBoolean("HasStarted", this.hasStarted());
+
         if (this.getTable() != null && this.mode != null) {
 
+            // Write basic game data
             tag.setString("GameMode", this.mode.getModeId().toString());
             tag.setString("GoalTable", this.getTable().getName().toString());
 
+            // Write the goal items
             final NBTTagList goalTags = new NBTTagList();
             tag.setTag("Goals", goalTags);
 
@@ -371,6 +517,7 @@ public class GameState {
                 }
             }
 
+            // Write the completion states
             final NBTTagList completionTag = new NBTTagList();
             tag.setTag("Completion", completionTag);
 
@@ -396,9 +543,6 @@ public class GameState {
                 }
             }
         }
-
-        tag.setBoolean("IsActive", this.isActive());
-        tag.setBoolean("HasStarted", this.isHasStarted());
 
         return tag;
     }

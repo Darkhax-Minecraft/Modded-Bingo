@@ -6,14 +6,26 @@ import net.minecraft.block.Block;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.util.math.BlockPos;
 
+/**
+ * This effect is used to randomize the spawn of all players when the game has started.
+ */
 public class SpawnEffectMovePlayer extends SpawnEffect {
 
+    /**
+     * Whether or not the spawn point should be changed.
+     */
     @Expose
     private boolean setSpawn;
 
+    /**
+     * A block to place below the player if there is no solid blocks at this position.
+     */
     @Expose
     private Block fallbackBlock;
 
+    /**
+     * A meta value for the fallback block.
+     */
     @Expose
     private int fallbackMeta;
 

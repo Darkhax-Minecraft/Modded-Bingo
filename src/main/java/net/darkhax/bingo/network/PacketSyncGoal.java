@@ -1,16 +1,30 @@
 package net.darkhax.bingo.network;
 
-import net.darkhax.bingo.BingoMod;
+import net.darkhax.bingo.api.BingoAPI;
 import net.darkhax.bingo.api.team.Team;
 import net.darkhax.bookshelf.network.SerializableMessage;
 import net.minecraft.client.Minecraft;
 import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
 import net.minecraftforge.fml.common.network.simpleimpl.MessageContext;
 
+/**
+ * This packet is used to sync the state of a specific goal.
+ */
 public class PacketSyncGoal extends SerializableMessage {
 
+    /**
+     * The X pos on the bingo board for the goal that is updated.
+     */
     public int x;
+
+    /**
+     * The Y pos on the bingo board for the goal that is updated.
+     */
     public int y;
+
+    /**
+     * The name of the team that completed the goal.
+     */
     public String teamName;
 
     public PacketSyncGoal () {
@@ -33,7 +47,7 @@ public class PacketSyncGoal extends SerializableMessage {
 
             if (team != null) {
 
-                BingoMod.GAME_STATE.getCompletionStates()[this.x][this.y][team.getTeamCorner()] = team;
+                BingoAPI.GAME_STATE.getCompletionStates()[this.x][this.y][team.getTeamCorner()] = team;
             }
         });
         return null;

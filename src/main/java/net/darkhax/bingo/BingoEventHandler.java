@@ -1,5 +1,6 @@
 package net.darkhax.bingo;
 
+import net.darkhax.bingo.api.BingoAPI;
 import net.darkhax.bingo.network.PacketSyncGameState;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.ItemStack;
@@ -15,9 +16,9 @@ public class BingoEventHandler {
     @SubscribeEvent
     public static void onPlayerPickupItem (ItemPickupEvent event) {
 
-        if (event.player instanceof EntityPlayerMP && BingoMod.GAME_STATE.isHasStarted()) {
+        if (event.player instanceof EntityPlayerMP && BingoAPI.GAME_STATE.hasStarted()) {
 
-            BingoMod.GAME_STATE.onPlayerPickupItem((EntityPlayerMP) event.player, event.getStack());
+            BingoAPI.GAME_STATE.onPlayerPickupItem((EntityPlayerMP) event.player, event.getStack());
         }
     }
 
@@ -27,7 +28,7 @@ public class BingoEventHandler {
         // When a player connects to the server, sync their client data with the server's data.
         if (event.player instanceof EntityPlayerMP) {
 
-            BingoMod.NETWORK.sendTo(new PacketSyncGameState(BingoMod.GAME_STATE.write()), (EntityPlayerMP) event.player);
+            BingoMod.NETWORK.sendTo(new PacketSyncGameState(BingoAPI.GAME_STATE.write()), (EntityPlayerMP) event.player);
         }
     }
 
@@ -41,7 +42,7 @@ public class BingoEventHandler {
 
                 if (!stack.isEmpty()) {
 
-                    BingoMod.GAME_STATE.onPlayerPickupItem((EntityPlayerMP) event.player, stack);
+                    BingoAPI.GAME_STATE.onPlayerPickupItem((EntityPlayerMP) event.player, stack);
                 }
             }
         }

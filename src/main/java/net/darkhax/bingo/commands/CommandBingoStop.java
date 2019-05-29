@@ -1,6 +1,6 @@
 package net.darkhax.bingo.commands;
 
-import net.darkhax.bingo.BingoMod;
+import net.darkhax.bingo.api.BingoAPI;
 import net.darkhax.bookshelf.command.Command;
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
@@ -24,7 +24,7 @@ public class CommandBingoStop extends Command {
     @Override
     public void execute (MinecraftServer server, ICommandSender sender, String[] args) throws CommandException {
 
-        BingoMod.GAME_STATE.end();
+        BingoAPI.GAME_STATE.end();
         server.getPlayerList().sendMessage(new TextComponentTranslation("command.bingo.stop.stopped", sender.getDisplayName()));
     }
 }
