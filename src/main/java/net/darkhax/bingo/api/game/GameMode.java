@@ -18,7 +18,7 @@ public class GameMode {
     private ResourceLocation modeId;
     
     @Expose
-    private List<GoalTable> goalTables;
+    private List<ResourceLocation> goalTables;
     
     @Expose
     private List<StartingEffect> startingEffects;
@@ -39,7 +39,7 @@ public class GameMode {
         return modeId;
     }
 
-    public List<GoalTable> getGoalTables () {
+    public List<ResourceLocation> getGoalTables () {
         
         return goalTables;
     }

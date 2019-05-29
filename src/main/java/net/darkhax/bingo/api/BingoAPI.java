@@ -26,6 +26,7 @@ import net.darkhax.bingo.api.goal.GoalTable;
 import net.darkhax.bingo.data.BingoEffectTypeAdapter;
 import net.darkhax.bookshelf.adapters.ItemStackAdapter;
 import net.darkhax.bookshelf.adapters.RegistryEntryAdapter;
+import net.darkhax.bookshelf.adapters.ResourceLocationTypeAdapter;
 import net.darkhax.bookshelf.dataloader.DataLoader;
 import net.darkhax.bookshelf.dataloader.sources.DataProviderAddons;
 import net.darkhax.bookshelf.dataloader.sources.DataProviderConfigs;
@@ -50,9 +51,11 @@ public class BingoAPI {
     private static final BingoEffectTypeAdapter<SpawnEffect> spawnEffectAdapter = new BingoEffectTypeAdapter<>();
     private static final BingoEffectTypeAdapter<StartingEffect> startingEffectAdapter = new BingoEffectTypeAdapter<>();
     
+    private static final Gson gson = buildGsonInstance();
+    
     private static Map<ResourceLocation, GameMode> gameModes = new HashMap<>();
     
-    private static Map<String, GoalTable> goalTables = new HashMap<>();
+    private static Map<ResourceLocation, GoalTable> goalTables = new HashMap<>();
 
     public static void registerCollectionEffect(String key, Class<? extends CollectionEffect> effect) {
         
@@ -79,16 +82,9 @@ public class BingoAPI {
         startingEffectAdapter.registerEffect(key, effect);
     }
     
-    public static GoalTable getGoalTable (String name) {
+    public static GoalTable getGoalTable (ResourceLocation name) {
 
         return goalTables.get(name);
-    }
-
-    public static GoalTable creteGoalTable (String name) {
-
-        final GoalTable table = new GoalTable(name);
-        goalTables.put(name, table);
-        return table;
     }
     
     public static void loadData() {
@@ -102,21 +98,39 @@ public class BingoAPI {
         loader.addDataProvider(new DataProviderConfigs(BingoMod.MOD_ID));
         loader.addDataProvider(new DataProviderAddons(BingoMod.MOD_ID));
         
-        loader.addProcessor("goaltables", BingoAPI::processGoalTables);
-        loader.addProcessor("gamemodes", BingoAPI::processGameModes);
+        loader.addProcessor("goaltable", BingoAPI::processGoalTables);
+        loader.addProcessor("gamemode", BingoAPI::processGameModes);
         
         loader.loadData();
     }
     
     private static void processGoalTables (ResourceLocation id, BufferedReader fileReader) {
         
+        GoalTable table = gson.fromJson(fileReader, GoalTable.class);
+        
+        if (table != null && table.getName() != null) {
+            
+            BingoMod.LOG.info("Successfully loaded Goal Table: " + table.getName().toString());
+            goalTables.put(table.getName(), table);
+        }
+        
+        // TODO handle the error cases
     }
     
     private static void processGameModes (ResourceLocation id, BufferedReader fileReader) {
         
+        GameMode mode = gson.fromJson(fileReader, GameMode.class);
+        
+        if (mode != null && mode.getModeId() != null) {
+            
+            BingoMod.LOG.info("Successfully loaded Game Mode: " + mode.getModeId().toString());
+            gameModes.put(mode.getModeId(), mode);
+        }
+        
+        // TODO handle the error cases
     }
     
-    private static Gson buildGsonInstance() {
+    public static Gson buildGsonInstance() {
         
         GsonBuilder builder = new GsonBuilder();
         
@@ -136,7 +150,8 @@ public class BingoAPI {
         builder.registerTypeAdapter(PotionType.class, new RegistryEntryAdapter<>(ForgeRegistries.POTION_TYPES));
         builder.registerTypeAdapter(Enchantment.class, new RegistryEntryAdapter<>(ForgeRegistries.ENCHANTMENTS));
         builder.registerTypeAdapter(EntityEntry.class, new RegistryEntryAdapter<>(ForgeRegistries.ENTITIES));
-
+        builder.registerTypeAdapter(ResourceLocation.class, new ResourceLocationTypeAdapter());
+        builder.setPrettyPrinting();
         return builder.create();
     }
     

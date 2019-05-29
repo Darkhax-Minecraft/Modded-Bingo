@@ -327,7 +327,7 @@ public class GameState {
 
         if (tag != null) {
 
-            this.table = BingoAPI.getGoalTable(tag.getString("GoalTable"));
+            this.table = null; //BingoAPI.getGoalTable(tag.getString("GoalTable"));
 
             if (this.table != null) {
 
@@ -337,9 +337,9 @@ public class GameState {
 
                     final NBTTagCompound goalTag = goalsTag.getCompoundTagAt(i);
 
-                    final GoalTier tier = this.getTable().getTierByName(goalTag.getString("Tier"));
-                    final Goal goal = tier.getGoalByName(goalTag.getString("Goal"));
-                    this.setGoal(goalTag.getInteger("X"), goalTag.getInteger("Y"), goal);
+                    //final GoalTier tier = this.getTable().getTierByName(goalTag.getString("Tier"));
+                    //final Goal goal = tier.getGoalByName(goalTag.getString("Goal"));
+                    //this.setGoal(goalTag.getInteger("X"), goalTag.getInteger("Y"), goal);
                 }
 
                 final NBTTagList completionTags = tag.getTagList("Completion", NBT.TAG_COMPOUND);
@@ -372,7 +372,7 @@ public class GameState {
 
         if (this.getTable() != null) {
 
-            tag.setString("GoalTable", this.getTable().getName());
+            //tag.setString("GoalTable", this.getTable().getName());
 
             final NBTTagList goals = new NBTTagList();
             tag.setTag("Goals", goals);
@@ -385,8 +385,8 @@ public class GameState {
                     final NBTTagCompound goalTag = new NBTTagCompound();
                     goalTag.setInteger("X", x);
                     goalTag.setInteger("Y", y);
-                    goalTag.setString("Tier", goal.getTier());
-                    goalTag.setString("Goal", goal.getName());
+                    //goalTag.setString("Tier", goal.getTier());
+                    //goalTag.setString("Goal", goal.getName());
                     goals.appendTag(goalTag);
                 }
             }

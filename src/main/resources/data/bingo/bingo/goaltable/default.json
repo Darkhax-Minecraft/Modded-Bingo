@@ -1,0 +1,543 @@
+{
+  "name": "bingo:default",
+  "tiers": [
+    {
+      "name": "easy",
+      "goals": [
+        {
+          "item": "minecraft:sign",
+          "meta": 0,
+          "weight": 20
+        },
+        {
+          "item": "minecraft:item_frame",
+          "meta": 0,
+          "weight": 20
+        },
+        {
+          "item": "minecraft:painting",
+          "meta": 0,
+          "weight": 20
+        },
+        {
+          "item": "minecraft:egg",
+          "meta": 0,
+          "weight": 15
+        },
+        {
+          "item": "minecraft:gunpowder",
+          "meta": 0,
+          "weight": 20
+        },
+        {
+          "item": "minecraft:sapling",
+          "meta": 1,
+          "weight": 5
+        },
+        {
+          "item": "minecraft:sapling",
+          "meta": 4,
+          "weight": 5
+        },
+        {
+          "item": "minecraft:beetroot_soup",
+          "meta": 0,
+          "weight": 10
+        },
+        {
+          "item": "minecraft:sugar",
+          "meta": 0,
+          "weight": 10
+        },
+        {
+          "item": "minecraft:flint",
+          "meta": 0,
+          "weight": 10
+        },
+        {
+          "item": "minecraft:melon",
+          "meta": 0,
+          "weight": 20
+        },
+        {
+          "item": "minecraft:flint_and_steel",
+          "meta": 0,
+          "weight": 20
+        },
+        {
+          "item": "minecraft:dye",
+          "meta": 0,
+          "weight": 5
+        },
+        {
+          "item": "minecraft:dye",
+          "meta": 2,
+          "weight": 10
+        },
+        {
+          "item": "minecraft:dye",
+          "meta": 3,
+          "weight": 5
+        },
+        {
+          "item": "minecraft:dye",
+          "meta": 4,
+          "weight": 5
+        },
+        {
+          "item": "minecraft:dye",
+          "meta": 6,
+          "weight": 1
+        },
+        {
+          "item": "minecraft:dye",
+          "meta": 8,
+          "weight": 5
+        },
+        {
+          "item": "minecraft:dye",
+          "meta": 10,
+          "weight": 5
+        },
+        {
+          "item": "minecraft:dye",
+          "meta": 13,
+          "weight": 1
+        },
+        {
+          "item": "minecraft:pumpkin_seeds",
+          "meta": 0,
+          "weight": 20
+        },
+        {
+          "item": "minecraft:rail",
+          "meta": 0,
+          "weight": 20
+        },
+        {
+          "item": "minecraft:apple",
+          "meta": 0,
+          "weight": 10
+        },
+        {
+          "item": "minecraft:brick",
+          "meta": 0,
+          "weight": 10
+        },
+        {
+          "item": "minecraft:spider_eye",
+          "meta": 0,
+          "weight": 10
+        },
+        {
+          "item": "minecraft:deadbush",
+          "meta": 0,
+          "weight": 10
+        },
+        {
+          "item": "minecraft:vine",
+          "meta": 0,
+          "weight": 10
+        },
+        {
+          "item": "minecraft:bone",
+          "meta": 0,
+          "weight": 10
+        },
+        {
+          "item": "minecraft:glass_bottle",
+          "meta": 0,
+          "weight": 10
+        },
+        {
+          "item": "minecraft:flower_pot",
+          "meta": 0,
+          "weight": 20
+        },
+        {
+          "item": "minecraft:tallgrass",
+          "meta": 2,
+          "weight": 5
+        },
+        {
+          "item": "minecraft:coal",
+          "meta": 1,
+          "weight": 20
+        },
+        {
+          "item": "minecraft:glowstone_dust",
+          "meta": 0,
+          "weight": 5
+        },
+        {
+          "item": "minecraft:tripwire_hook",
+          "meta": 0,
+          "weight": 10
+        },
+        {
+          "item": "minecraft:carrot_on_a_stick",
+          "meta": 0,
+          "weight": 10
+        },
+        {
+          "item": "minecraft:ladder",
+          "meta": 0,
+          "weight": 20
+        },
+        {
+          "item": "minecraft:stone_slab",
+          "meta": 0,
+          "weight": 20
+        },
+        {
+          "item": "minecraft:glass_pane",
+          "meta": 0,
+          "weight": 20
+        },
+        {
+          "item": "minecraft:sapling",
+          "meta": 0,
+          "weight": 5
+        },
+        {
+          "item": "minecraft:sapling",
+          "meta": 2,
+          "weight": 5
+        },
+        {
+          "item": "minecraft:sapling",
+          "meta": 3,
+          "weight": 5
+        },
+        {
+          "item": "minecraft:sapling",
+          "meta": 5,
+          "weight": 5
+        }
+      ],
+      "weight": 40
+    },
+    {
+      "name": "medium",
+      "goals": [
+        {
+          "item": "minecraft:golden_sword",
+          "meta": 0,
+          "weight": 10
+        },
+        {
+          "item": "minecraft:clock",
+          "meta": 0,
+          "weight": 20
+        },
+        {
+          "item": "minecraft:golden_rail",
+          "meta": 0,
+          "weight": 10
+        },
+        {
+          "item": "minecraft:hopper",
+          "meta": 0,
+          "weight": 20
+        },
+        {
+          "item": "minecraft:fish",
+          "meta": 0,
+          "weight": 15
+        },
+        {
+          "item": "minecraft:cake",
+          "meta": 0,
+          "weight": 15
+        },
+        {
+          "item": "minecraft:milk_bucket",
+          "meta": 0,
+          "weight": 10
+        },
+        {
+          "item": "minecraft:enchanted_book",
+          "meta": 0,
+          "weight": 5
+        },
+        {
+          "item": "minecraft:cauldron",
+          "meta": 0,
+          "weight": 10
+        },
+        {
+          "item": "minecraft:chest_minecart",
+          "meta": 0,
+          "weight": 10
+        },
+        {
+          "item": "minecraft:tnt_minecart",
+          "meta": 0,
+          "weight": 10
+        },
+        {
+          "item": "minecraft:fireworks",
+          "meta": 0,
+          "weight": 10
+        },
+        {
+          "item": "minecraft:compass",
+          "meta": 0,
+          "weight": 20
+        },
+        {
+          "item": "minecraft:map",
+          "meta": 0,
+          "weight": 10
+        },
+        {
+          "item": "minecraft:furnace_minecart",
+          "meta": 0,
+          "weight": 10
+        },
+        {
+          "item": "minecraft:emerald",
+          "meta": 0,
+          "weight": 5
+        },
+        {
+          "item": "minecraft:ender_pearl",
+          "meta": 0,
+          "weight": 10
+        },
+        {
+          "item": "minecraft:slime_ball",
+          "meta": 0,
+          "weight": 5
+        },
+        {
+          "item": "minecraft:speckled_melon",
+          "meta": 0,
+          "weight": 15
+        },
+        {
+          "item": "minecraft:cookie",
+          "meta": 0,
+          "weight": 15
+        },
+        {
+          "item": "minecraft:pumpkin_pie",
+          "meta": 0,
+          "weight": 15
+        },
+        {
+          "item": "minecraft:mushroom_stew",
+          "meta": 0,
+          "weight": 10
+        },
+        {
+          "item": "minecraft:golden_shovel",
+          "meta": 0,
+          "weight": 10
+        },
+        {
+          "item": "minecraft:fermented_spider_eye",
+          "meta": 0,
+          "weight": 10
+        },
+        {
+          "item": "minecraft:book",
+          "meta": 0,
+          "weight": 15
+        },
+        {
+          "item": "minecraft:writable_book",
+          "meta": 0,
+          "weight": 10
+        },
+        {
+          "item": "minecraft:blaze_rod",
+          "meta": 0,
+          "weight": 5
+        },
+        {
+          "item": "minecraft:quartz",
+          "meta": 0,
+          "weight": 5
+        },
+        {
+          "item": "minecraft:prismarine_shard",
+          "meta": 0,
+          "weight": 5
+        },
+        {
+          "item": "minecraft:lead",
+          "meta": 0,
+          "weight": 5
+        },
+        {
+          "item": "minecraft:spectral_arrow",
+          "meta": 0,
+          "weight": 10
+        },
+        {
+          "item": "minecraft:golden_carrot",
+          "meta": 0,
+          "weight": 10
+        },
+        {
+          "item": "minecraft:armor_stand",
+          "meta": 0,
+          "weight": 15
+        },
+        {
+          "item": "minecraft:redstone_lamp",
+          "meta": 0,
+          "weight": 10
+        },
+        {
+          "item": "minecraft:comparator",
+          "meta": 0,
+          "weight": 10
+        },
+        {
+          "item": "minecraft:piston",
+          "meta": 0,
+          "weight": 10
+        },
+        {
+          "item": "minecraft:dispenser",
+          "meta": 0,
+          "weight": 10
+        },
+        {
+          "item": "minecraft:iron_trapdoor",
+          "meta": 0,
+          "weight": 10
+        },
+        {
+          "item": "minecraft:light_weighted_pressure_plate",
+          "meta": 0,
+          "weight": 10
+        },
+        {
+          "item": "minecraft:noteblock",
+          "meta": 0,
+          "weight": 10
+        },
+        {
+          "item": "minecraft:dropper",
+          "meta": 0,
+          "weight": 10
+        },
+        {
+          "item": "minecraft:observer",
+          "meta": 0,
+          "weight": 5
+        },
+        {
+          "item": "minecraft:ghast_tear",
+          "meta": 0,
+          "weight": 5
+        }
+      ],
+      "weight": 32
+    },
+    {
+      "name": "hard",
+      "goals": [
+        {
+          "item": "minecraft:hopper_minecart",
+          "meta": 0,
+          "weight": 20
+        },
+        {
+          "item": "minecraft:saddle",
+          "meta": 0,
+          "weight": 5
+        },
+        {
+          "item": "minecraft:name_tag",
+          "meta": 0,
+          "weight": 5
+        },
+        {
+          "item": "minecraft:golden_apple",
+          "meta": 0,
+          "weight": 5
+        },
+        {
+          "item": "minecraft:diamond_axe",
+          "meta": 0,
+          "weight": 10
+        },
+        {
+          "item": "minecraft:diamond",
+          "meta": 0,
+          "weight": 15
+        },
+        {
+          "item": "minecraft:diamond_hoe",
+          "meta": 0,
+          "weight": 15
+        },
+        {
+          "item": "minecraft:rabbit_stew",
+          "meta": 0,
+          "weight": 20
+        },
+        {
+          "item": "minecraft:nether_wart_block",
+          "meta": 0,
+          "weight": 10
+        },
+        {
+          "item": "minecraft:ender_eye",
+          "meta": 0,
+          "weight": 10
+        },
+        {
+          "item": "minecraft:fish",
+          "meta": 3,
+          "weight": 10
+        },
+        {
+          "item": "minecraft:diamond_chestplate",
+          "meta": 0,
+          "weight": 10
+        },
+        {
+          "item": "minecraft:diamond_horse_armor",
+          "meta": 0,
+          "weight": 5
+        },
+        {
+          "item": "minecraft:golden_horse_armor",
+          "meta": 0,
+          "weight": 5
+        },
+        {
+          "item": "minecraft:iron_horse_armor",
+          "meta": 0,
+          "weight": 5
+        },
+        {
+          "item": "minecraft:jukebox",
+          "meta": 0,
+          "weight": 20
+        },
+        {
+          "item": "minecraft:ender_chest",
+          "meta": 0,
+          "weight": 10
+        },
+        {
+          "item": "minecraft:enchanting_table",
+          "meta": 0,
+          "weight": 10
+        },
+        {
+          "item": "minecraft:anvil",
+          "meta": 0,
+          "weight": 10
+        }
+      ],
+      "weight": 25
+    }
+  ]
+}

@@ -10,6 +10,7 @@ import net.darkhax.bookshelf.command.Command;
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.text.TextComponentTranslation;
 
 public class CommandBingoCreate extends Command {
@@ -29,7 +30,7 @@ public class CommandBingoCreate extends Command {
     @Override
     public void execute (MinecraftServer server, ICommandSender sender, String[] args) throws CommandException {
 
-        final GoalTable table = args.length >= 1 ? BingoAPI.getGoalTable(args[0]) : BingoMod.DEFAULT;
+        final GoalTable table = args.length >= 1 ? BingoAPI.getGoalTable(new ResourceLocation(args[0])) : BingoAPI.getGoalTable(new ResourceLocation("bingo:default"));
         final Random random = args.length >= 2 ? new Random(args[1].hashCode()) : new Random();
         BingoMod.GAME_STATE.create(random, table);
 

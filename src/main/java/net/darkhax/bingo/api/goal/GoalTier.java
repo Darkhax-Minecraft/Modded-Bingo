@@ -1,46 +1,25 @@
 package net.darkhax.bingo.api.goal;
 
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Random;
 
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.WeightedRandom;
+import com.google.gson.annotations.Expose;
 
-public class GoalTier extends WeightedRandom.Item {
+import net.darkhax.bingo.data.WeightedObject;
 
-    private final String name;
-    private final List<Goal> goals;
-    private final Map<String, Goal> goalsByName;
+public class GoalTier extends WeightedObject {
 
-    public GoalTier (String name, int weight) {
+    @Expose
+    private String name;
+    
+    @Expose
+    private List<Goal> goals;
 
-        super(weight);
-        this.name = name;
-        this.goals = new ArrayList<>();
-        this.goalsByName = new HashMap<>();
+    public GoalTier (int itemWeightIn) {
+        
+        super(itemWeightIn);
     }
-
-    public Goal createGoal (String name, ItemStack target, int weight) {
-
-        final Goal goal = new Goal(this.name, name, target, weight);
-        this.goals.add(goal);
-        this.goalsByName.put(goal.getName(), goal);
-        return goal;
-    }
-
-    public Goal getGoalByName (String name) {
-
-        return this.goalsByName.get(name);
-    }
-
-    public List<Goal> getGoals () {
-
-        return this.goals;
-    }
-
+    
     public String getName () {
 
         return this.name;
@@ -48,6 +27,6 @@ public class GoalTier extends WeightedRandom.Item {
 
     public Goal getRandomGoal (Random rand) {
 
-        return WeightedRandom.getRandomItem(rand, this.goals);
+        return WeightedObject.getRandomItem(rand, this.goals);
     }
 }

@@ -1,6 +1,6 @@
 {
-  "modeId": "bingo:classic",
-  "goalTables": ["bingo:classic"],
+  "modeId": "bingo:default",
+  "goalTables": ["bingo:default"],
   "spawnEffects": [
     {
       "type": "bingo:randomize_spawn",

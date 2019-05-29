@@ -1,45 +1,34 @@
 package net.darkhax.bingo.api.goal;
 
+import com.google.gson.annotations.Expose;
+
+import net.darkhax.bingo.data.WeightedObject;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.WeightedRandom;
 
-public class Goal extends WeightedRandom.Item {
+public class Goal extends WeightedObject {
 
-    private final ItemStack targetItem;
-    private final String name;
-    private final String tier;
+    @Expose
+    private Item item;
+    
+    @Expose
+    private int meta;
 
-    public Goal (String table, String name, ItemStack targetItem, int weight) {
+    private ItemStack targetItem;
 
-        super(weight);
-        this.targetItem = targetItem;
-        this.name = name;
-        this.tier = table;
-
-        if (targetItem.isEmpty()) {
-
-            throw new IllegalArgumentException("Item was air, this is not allowed!");
-        }
+    public Goal (int itemWeightIn) {
+        
+        super(itemWeightIn);
     }
-
+    
     public ItemStack getTarget () {
 
         return this.targetItem;
     }
 
-    public String getTier () {
-
-        return this.tier;
-    }
-
-    public String getName () {
-
-        return this.name;
-    }
-
     @Override
     public int hashCode () {
 
-        return this.name.hashCode();
+        return this.targetItem.hashCode();
     }
 }
