@@ -62,7 +62,7 @@ public class GameMode {
      * Effects to apply when the players are spawned into the game.
      */
     @Expose
-    private List<SpawnEffect> spawnEffect;
+    private List<SpawnEffect> spawnEffects;
 
     /**
      * Gets the ID of the game mode. Used to (de)serialize the game mode, and specify it with
@@ -132,7 +132,7 @@ public class GameMode {
      */
     public List<SpawnEffect> getSpawnEffect () {
 
-        return this.spawnEffect;
+        return this.spawnEffects;
     }
 
     /**
