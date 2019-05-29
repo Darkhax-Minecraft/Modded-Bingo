@@ -64,6 +64,7 @@ public class GameState {
         this.hasStarted = false;
         this.isActive = false;
         this.mode = null;
+        this.table = null;
     }
 
     public ItemStack getGoal (int x, int y) {
@@ -349,7 +350,7 @@ public class GameState {
 
         final NBTTagCompound tag = new NBTTagCompound();
 
-        if (this.getTable() != null) {
+        if (this.getTable() != null && this.mode != null) {
 
             tag.setString("GameMode", this.mode.getModeId().toString());
             tag.setString("GoalTable", this.getTable().getName().toString());
