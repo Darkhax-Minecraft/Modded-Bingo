@@ -7,6 +7,9 @@
       "setSpawn": true,
       "fallbackBlock": "minecraft:bedrock",
       "meta": 0
+    },
+    {
+      "type": "bingo:clear_inventory"
     }
   ],
   "startingEffects": [

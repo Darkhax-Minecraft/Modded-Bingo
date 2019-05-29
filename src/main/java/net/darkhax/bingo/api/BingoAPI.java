@@ -19,6 +19,7 @@ import net.darkhax.bingo.api.effects.ending.EndingEffectFirework;
 import net.darkhax.bingo.api.effects.ending.GameWinEffect;
 import net.darkhax.bingo.api.effects.gameplay.IGameplayEffect;
 import net.darkhax.bingo.api.effects.spawn.SpawnEffect;
+import net.darkhax.bingo.api.effects.spawn.SpawnEffectClearInventory;
 import net.darkhax.bingo.api.effects.spawn.SpawnEffectMovePlayer;
 import net.darkhax.bingo.api.effects.spawn.SpawnEffectPotion;
 import net.darkhax.bingo.api.effects.starting.StartingEffect;
@@ -318,6 +319,7 @@ public class BingoAPI {
 
         registerSpawnEffect("bingo:randomize_spawn", SpawnEffectMovePlayer.class);
         registerSpawnEffect("bingo:potion_effect", SpawnEffectPotion.class);
+        registerSpawnEffect("bingo:clear_inventory", SpawnEffectClearInventory.class);
 
         registerStartingEffect("bingo:set_time", StartingEffectTime.class);
     }

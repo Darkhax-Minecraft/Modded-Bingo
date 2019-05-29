@@ -70,6 +70,12 @@ public class BingoEffectTypeAdapter<T> implements JsonDeserializer<T> {
         }
 
         // Deserialize the json data to the specified type.
-        return context.deserialize(jsonObject, effectClass);
+        final T result = context.deserialize(jsonObject, effectClass);
+        
+        if (result == null) {
+            BingoMod.LOG.error("Failed to resolve {}", jsonObject.toString());
+        }
+        
+        return result;
     }
 }
