@@ -32,7 +32,7 @@ public class GameState {
     private GameMode mode;
     private GoalTable table;
     private Random random;
-    private ItemStack[][] goals = new ItemStack[5][5];
+    private final ItemStack[][] goals = new ItemStack[5][5];
     private Team[][][] completionStates = new Team[5][5][4];
     private boolean isActive = false;
     private boolean hasStarted = false;
@@ -52,9 +52,9 @@ public class GameState {
     public void start (MinecraftServer server) {
 
         this.hasStarted = true;
-        
-        for (StartingEffect effect : this.mode.getStartingEffects()) {
-            
+
+        for (final StartingEffect effect : this.mode.getStartingEffects()) {
+
             effect.onGameStarted(server);
         }
     }
@@ -84,11 +84,11 @@ public class GameState {
 
             this.completionStates[x][y][playerTeam.getTeamCorner()] = playerTeam;
 
-            for (CollectionEffect effect : this.getMode().getItemCollectEffects()) {
-                
+            for (final CollectionEffect effect : this.getMode().getItemCollectEffects()) {
+
                 effect.onItemCollected(player, item, playerTeam);
             }
-            
+
             BingoMod.NETWORK.sendToAll(new PacketSyncGoal(x, y, playerTeam.getTeamKey()));
         }
 
@@ -113,8 +113,8 @@ public class GameState {
 
             this.hasStarted = false;
 
-            for (EndingEffect endEffect : this.mode.getEndingEffects()) {
-                
+            for (final EndingEffect endEffect : this.mode.getEndingEffects()) {
+
                 endEffect.onGameCompleted(server, this.winner);
             }
         }
@@ -290,20 +290,19 @@ public class GameState {
     }
 
     public Team getWinner () {
-        
-        return winner;
+
+        return this.winner;
     }
 
     public void setWinner (Team winner) {
-        
+
         this.winner = winner;
     }
 
     public GameMode getMode () {
-        
-        return mode;
+
+        return this.mode;
     }
-    
 
     public void read (NBTTagCompound tag) {
 

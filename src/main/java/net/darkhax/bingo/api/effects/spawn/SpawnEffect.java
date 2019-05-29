@@ -4,6 +4,6 @@ import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.util.math.BlockPos;
 
 public abstract class SpawnEffect {
-    
-    public abstract void onPlayerSpawn(EntityPlayerMP player, BlockPos pos);
+
+    public abstract void onPlayerSpawn (EntityPlayerMP player, BlockPos pos);
 }

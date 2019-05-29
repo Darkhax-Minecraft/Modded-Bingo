@@ -5,6 +5,6 @@ import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.ItemStack;
 
 public abstract class CollectionEffect {
-    
-    public abstract void onItemCollected(EntityPlayerMP player, ItemStack item, Team team);
+
+    public abstract void onItemCollected (EntityPlayerMP player, ItemStack item, Team team);
 }

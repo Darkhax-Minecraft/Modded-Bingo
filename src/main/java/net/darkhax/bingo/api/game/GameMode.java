@@ -16,71 +16,71 @@ import net.darkhax.bingo.api.goal.GoalTable;
 import net.minecraft.util.ResourceLocation;
 
 public class GameMode {
-    
+
     @Expose
     private ResourceLocation modeId;
-    
+
     @Expose
-    private List<ResourceLocation> goalTables = new ArrayList<>();
-    
+    private List<ResourceLocation> goalTables;
+
     @Expose
-    private List<StartingEffect> startingEffects = new ArrayList<>();
-    
+    private List<StartingEffect> startingEffects;
+
     @Expose
-    private List<CollectionEffect> itemCollectEffects = new ArrayList<>();
-    
+    private List<CollectionEffect> itemCollectEffects;
+
     @Expose
-    private List<EndingEffect> endingEffects = new ArrayList<>();
-    
+    private List<EndingEffect> endingEffects;
+
     @Expose
-    private List<IGameplayEffect> gameplayEffects = new ArrayList<>();
-    
-    private List<SpawnEffect> spawnEffect = new ArrayList<>();
+    private List<IGameplayEffect> gameplayEffects;
+
+    private List<SpawnEffect> spawnEffect;
 
     public ResourceLocation getModeId () {
-        
-        return modeId;
+
+        return this.modeId;
     }
 
     public List<ResourceLocation> getGoalTables () {
-        
-        return goalTables;
+
+        return this.goalTables;
     }
 
     public List<StartingEffect> getStartingEffects () {
-        
-        return startingEffects;
+
+        return this.startingEffects;
     }
 
     public List<CollectionEffect> getItemCollectEffects () {
-        
-        return itemCollectEffects;
+
+        return this.itemCollectEffects;
     }
 
     public List<EndingEffect> getEndingEffects () {
-        
-        return endingEffects;
+
+        return this.endingEffects;
     }
 
     public List<IGameplayEffect> getGameplayEffects () {
-        
-        return gameplayEffects;
+
+        return this.gameplayEffects;
     }
 
     public List<SpawnEffect> getSpawnEffect () {
-        
-        return spawnEffect;
+
+        return this.spawnEffect;
     }
-    
-    public GoalTable getRandomTable(Random random) {
-        
-        List<GoalTable> tables = new ArrayList<>();
-        
-        for (ResourceLocation tableId : this.getGoalTables()) {
-            
+
+    public GoalTable getRandomTable (Random random) {
+
+        final List<GoalTable> tables = new ArrayList<>();
+
+        for (final ResourceLocation tableId : this.getGoalTables()) {
+
             tables.add(BingoAPI.getGoalTable(tableId));
         }
-        
+
         return tables.get(random.nextInt(tables.size()));
     }
 }

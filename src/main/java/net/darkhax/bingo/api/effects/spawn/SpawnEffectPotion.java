@@ -11,16 +11,16 @@ public class SpawnEffectPotion extends SpawnEffect {
 
     @Expose
     private Potion effect;
-    
+
     @Expose
     private int duration;
-    
+
     @Expose
     private int amplifier;
-    
+
     @Override
     public void onPlayerSpawn (EntityPlayerMP player, BlockPos pos) {
-        
-        player.addPotionEffect(new PotionEffect(effect, duration, amplifier));
-    } 
+
+        player.addPotionEffect(new PotionEffect(this.effect, this.duration, this.amplifier));
+    }
 }

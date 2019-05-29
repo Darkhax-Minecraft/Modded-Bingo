@@ -50,102 +50,102 @@ public class BingoAPI {
     private static final BingoEffectTypeAdapter<IGameplayEffect> gameplayEffectAdapter = new BingoEffectTypeAdapter<>();
     private static final BingoEffectTypeAdapter<SpawnEffect> spawnEffectAdapter = new BingoEffectTypeAdapter<>();
     private static final BingoEffectTypeAdapter<StartingEffect> startingEffectAdapter = new BingoEffectTypeAdapter<>();
-    
+
     private static final Gson gson = buildGsonInstance();
-    
+
     private static Map<ResourceLocation, GameMode> gameModes = new HashMap<>();
-    
+
     private static Map<ResourceLocation, GoalTable> goalTables = new HashMap<>();
 
-    public static void registerCollectionEffect(String key, Class<? extends CollectionEffect> effect) {
-        
+    public static void registerCollectionEffect (String key, Class<? extends CollectionEffect> effect) {
+
         collectionEffectAdapter.registerEffect(key, effect);
     }
-    
-    public static void registerEndingEffect(String key, Class<? extends EndingEffect> effect) {
-        
+
+    public static void registerEndingEffect (String key, Class<? extends EndingEffect> effect) {
+
         endingEffectAdapter.registerEffect(key, effect);
     }
-    
-    public static void registerGameplayEffect(String key, Class<? extends IGameplayEffect> effect) {
-        
+
+    public static void registerGameplayEffect (String key, Class<? extends IGameplayEffect> effect) {
+
         gameplayEffectAdapter.registerEffect(key, effect);
     }
-    
-    public static void registerSpawnEffect(String key, Class<? extends SpawnEffect> effect) {
-        
+
+    public static void registerSpawnEffect (String key, Class<? extends SpawnEffect> effect) {
+
         spawnEffectAdapter.registerEffect(key, effect);
     }
 
-    public static void registerStartingEffect(String key, Class <? extends StartingEffect> effect) {
-        
+    public static void registerStartingEffect (String key, Class<? extends StartingEffect> effect) {
+
         startingEffectAdapter.registerEffect(key, effect);
     }
-    
+
     public static GoalTable getGoalTable (ResourceLocation name) {
 
         return goalTables.get(name);
     }
-    
+
     public static GameMode getGameMode (ResourceLocation name) {
-        
+
         return gameModes.get(name);
     }
-    
-    public static void loadData() {
-        
+
+    public static void loadData () {
+
         gameModes.clear();
         goalTables.clear();
-        
+
         final DataLoader loader = new DataLoader(BingoMod.LOG);
-        
+
         loader.addDataProvider(new DataProviderModsOverridable(BingoMod.MOD_ID));
         loader.addDataProvider(new DataProviderConfigs(BingoMod.MOD_ID));
         loader.addDataProvider(new DataProviderAddons(BingoMod.MOD_ID));
-        
+
         loader.addProcessor("goaltable", BingoAPI::processGoalTables);
         loader.addProcessor("gamemode", BingoAPI::processGameModes);
-        
+
         loader.loadData();
     }
-    
+
     private static void processGoalTables (ResourceLocation id, BufferedReader fileReader) {
-        
-        GoalTable table = gson.fromJson(fileReader, GoalTable.class);
-        
+
+        final GoalTable table = gson.fromJson(fileReader, GoalTable.class);
+
         if (table != null && table.getName() != null) {
-            
+
             BingoMod.LOG.info("Successfully loaded Goal Table: " + table.getName().toString());
             goalTables.put(table.getName(), table);
         }
-        
+
         // TODO handle the error cases
     }
-    
+
     private static void processGameModes (ResourceLocation id, BufferedReader fileReader) {
-        
-        GameMode mode = gson.fromJson(fileReader, GameMode.class);
-        
+
+        final GameMode mode = gson.fromJson(fileReader, GameMode.class);
+
         if (mode != null && mode.getModeId() != null) {
-            
+
             BingoMod.LOG.info("Successfully loaded Game Mode: " + mode.getModeId().toString());
             gameModes.put(mode.getModeId(), mode);
         }
-        
+
         // TODO handle the error cases
     }
-    
-    public static Gson buildGsonInstance() {
-        
-        GsonBuilder builder = new GsonBuilder();
-        
+
+    public static Gson buildGsonInstance () {
+
+        final GsonBuilder builder = new GsonBuilder();
+
         builder.excludeFieldsWithoutExposeAnnotation();
         builder.registerTypeAdapter(CollectionEffect.class, collectionEffectAdapter);
         builder.registerTypeAdapter(EndingEffect.class, endingEffectAdapter);
         builder.registerTypeAdapter(IGameplayEffect.class, gameplayEffectAdapter);
         builder.registerTypeAdapter(SpawnEffect.class, spawnEffectAdapter);
         builder.registerTypeAdapter(StartingEffect.class, startingEffectAdapter);
-        
+
         builder.registerTypeAdapter(ItemStack.class, new ItemStackAdapter());
         builder.registerTypeAdapter(Block.class, new RegistryEntryAdapter<>(ForgeRegistries.BLOCKS));
         builder.registerTypeAdapter(Item.class, new RegistryEntryAdapter<>(ForgeRegistries.ITEMS));
@@ -159,19 +159,19 @@ public class BingoAPI {
         builder.setPrettyPrinting();
         return builder.create();
     }
-    
+
     static {
-        
+
         registerCollectionEffect("bingo:firework", CollectionEffectFirework.class);
         registerCollectionEffect("bingo:announcement", CollectionEffectAnnouncement.class);
         registerCollectionEffect("bingo:shrink_item", CollectionEffectShrink.class);
-        
+
         registerEndingEffect("bingo:announcement", EndingEffectAnnounce.class);
         registerEndingEffect("bingo:firework", EndingEffectFirework.class);
-        
+
         registerSpawnEffect("bingo:randomize_spawn", SpawnEffectMovePlayer.class);
         registerSpawnEffect("bingo:potion_effect", SpawnEffectPotion.class);
-        
+
         registerStartingEffect("bingo:set_time", StartingEffectTime.class);
     }
 }

@@ -18,12 +18,12 @@ public class BingoEffectTypeAdapter<T> implements JsonDeserializer<T> {
     public void registerEffect (String key, Class<? extends T> effectClass) {
 
         if (this.effectClasses.containsKey(key)) {
-            
+
             BingoMod.LOG.warn("Could not register {} with id {}. It is already assigned to {}.", effectClass.getName(), key, this.effectClasses.get(key).getName());
         }
-        
+
         else {
-            
+
             this.effectClasses.put(key, effectClass);
         }
     }
@@ -48,7 +48,7 @@ public class BingoEffectTypeAdapter<T> implements JsonDeserializer<T> {
         final String type = jsonType.getAsString();
 
         // Lookup the class from the deserialization map.
-        final Class<? extends T> effectClass = effectClasses.get(type);
+        final Class<? extends T> effectClass = this.effectClasses.get(type);
 
         // Fail early if the class does not exist.
         if (effectClass == null) {

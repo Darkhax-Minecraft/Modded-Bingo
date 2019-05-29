@@ -8,7 +8,7 @@ public class CollectionEffectShrink extends CollectionEffect {
 
     @Override
     public void onItemCollected (EntityPlayerMP player, ItemStack item, Team team) {
-        
+
         item.shrink(1);
     }
 }

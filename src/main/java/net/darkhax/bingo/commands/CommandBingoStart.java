@@ -7,10 +7,7 @@ import net.darkhax.bookshelf.command.Command;
 import net.darkhax.bookshelf.util.MathsUtils;
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
-import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraft.init.MobEffects;
-import net.minecraft.potion.PotionEffect;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.BlockPos;
@@ -50,30 +47,30 @@ public class CommandBingoStart extends Command {
 
         for (final EntityPlayerMP player : server.getPlayerList().getPlayers()) {
 
-            for (SpawnEffect effect : BingoMod.GAME_STATE.getMode().getSpawnEffect()) {
-                
-                effect.onPlayerSpawn(player, getRandomPosition(player.world));
+            for (final SpawnEffect effect : BingoMod.GAME_STATE.getMode().getSpawnEffect()) {
+
+                effect.onPlayerSpawn(player, this.getRandomPosition(player.world));
             }
         }
     }
-    
-    private BlockPos getRandomPosition(World world) {
-        
+
+    private BlockPos getRandomPosition (World world) {
+
         final int x = MathsUtils.nextIntInclusive(-29_999_900, 29_999_900);
         final int z = MathsUtils.nextIntInclusive(-29_999_900, 29_999_900);
-        
-        BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos(x, 255, z);
-        
+
+        final BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos(x, 255, z);
+
         while (world.isAirBlock(pos)) {
-            
+
             pos.move(EnumFacing.DOWN);
-            
+
             if (pos.getY() <= 10) {
-                
+
                 return pos;
             }
         }
-        
+
         return pos.move(EnumFacing.UP);
     }
 }

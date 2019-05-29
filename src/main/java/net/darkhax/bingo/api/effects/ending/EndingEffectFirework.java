@@ -5,13 +5,13 @@ import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.server.MinecraftServer;
 
 public class EndingEffectFirework extends EndingEffect {
-    
+
     @Override
     public void onGameCompleted (MinecraftServer server, Team winningTeam) {
-        
+
         for (final EntityPlayerMP player : server.getPlayerList().getPlayers()) {
 
             winningTeam.spawnFirework(player);
         }
-    } 
+    }
 }

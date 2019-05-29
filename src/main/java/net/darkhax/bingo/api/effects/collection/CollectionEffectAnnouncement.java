@@ -11,7 +11,7 @@ public class CollectionEffectAnnouncement extends CollectionEffect {
 
     @Override
     public void onItemCollected (EntityPlayerMP player, ItemStack item, Team team) {
-        
+
         final ITextComponent playerName = player.getDisplayName();
         playerName.getStyle().setColor(team.getTeamColorText());
 

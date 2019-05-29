@@ -12,10 +12,10 @@ public class GoalTable {
 
     @Expose
     private ResourceLocation name;
-    
+
     @Expose
     private List<GoalTier> tiers;
-    
+
     public ResourceLocation getName () {
 
         return this.name;

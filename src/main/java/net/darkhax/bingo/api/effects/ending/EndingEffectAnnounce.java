@@ -8,7 +8,7 @@ public class EndingEffectAnnounce extends EndingEffect {
 
     @Override
     public void onGameCompleted (MinecraftServer server, Team winningTeam) {
-        
+
         server.getPlayerList().sendMessage(new TextComponentTranslation("bingo.winner", winningTeam.getTeamName()));
-    } 
+    }
 }

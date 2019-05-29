@@ -3,7 +3,6 @@ package net.darkhax.bingo.client;
 import org.lwjgl.opengl.GL11;
 
 import net.darkhax.bingo.BingoMod;
-import net.darkhax.bingo.api.goal.Goal;
 import net.darkhax.bingo.api.team.Team;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.EntityPlayerSP;
