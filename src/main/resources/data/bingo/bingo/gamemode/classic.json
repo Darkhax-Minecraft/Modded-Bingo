@@ -10,6 +10,24 @@
     },
     {
       "type": "bingo:clear_inventory"
+    },
+    {
+      "type": "bingo:potion_effect",
+      "effect": "minecraft:resistance",
+      "duration": 100,
+      "amplifier": 5
+    },
+    {
+      "type": "bingo:potion_effect",
+      "effect": "minecraft:instant_health",
+      "duration": 100,
+      "amplifier": 5
+    },
+    {
+      "type": "bingo:potion_effect",
+      "effect": "minecraft:saturation",
+      "duration": 100,
+      "amplifier": 5
     }
   ],
   "startingEffects": [
