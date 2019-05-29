@@ -4,6 +4,7 @@ import java.util.List;
 
 import javax.annotation.Nullable;
 
+import net.darkhax.bingo.api.BingoAPI;
 import net.darkhax.bingo.api.team.Team;
 import net.darkhax.bingo.data.BingoPersistantData;
 import net.darkhax.bookshelf.command.Command;
@@ -39,7 +40,7 @@ public class CommandBingoTeam extends Command {
     @Override
     public List<String> getTabCompletions (MinecraftServer server, ICommandSender sender, String[] args, @Nullable BlockPos targetPos) {
 
-        return Team.getTeamNames();
+        return getListOfStringsMatchingLastWord(args, Team.getTeamNames());
     }
 
     @Override

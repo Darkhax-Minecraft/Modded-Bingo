@@ -1,16 +1,21 @@
 package net.darkhax.bingo.commands;
 
+import java.util.List;
 import java.util.Random;
+
+import javax.annotation.Nullable;
 
 import net.darkhax.bingo.BingoMod;
 import net.darkhax.bingo.api.BingoAPI;
 import net.darkhax.bingo.api.game.GameMode;
+import net.darkhax.bingo.api.team.Team;
 import net.darkhax.bingo.network.PacketSyncGameState;
 import net.darkhax.bookshelf.command.Command;
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.TextComponentTranslation;
 
 public class CommandBingoCreate extends Command {
@@ -46,5 +51,16 @@ public class CommandBingoCreate extends Command {
             
             throw new CommandException("command.bingo.create.unknown");
         }
+    }
+    
+    @Override
+    public List<String> getTabCompletions (MinecraftServer server, ICommandSender sender, String[] args, @Nullable BlockPos targetPos) {
+
+        if (args.length == 1) {
+
+            return getListOfStringsMatchingLastWord(args, BingoAPI.getGameModeKeys());
+        }
+        
+        return super.getTabCompletions(server, sender, args, targetPos);
     }
 }
