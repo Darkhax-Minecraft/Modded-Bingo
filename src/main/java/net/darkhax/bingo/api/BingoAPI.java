@@ -87,6 +87,11 @@ public class BingoAPI {
         return goalTables.get(name);
     }
     
+    public static GameMode getGameMode (ResourceLocation name) {
+        
+        return gameModes.get(name);
+    }
+    
     public static void loadData() {
         
         gameModes.clear();

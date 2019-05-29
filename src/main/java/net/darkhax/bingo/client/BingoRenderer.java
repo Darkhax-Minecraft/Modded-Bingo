@@ -14,6 +14,7 @@ import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.client.renderer.RenderItem;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
+import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
@@ -89,11 +90,11 @@ public class BingoRenderer {
 
                 for (int y = 0; y < 5; y++) {
 
-                    final Goal goal = BingoMod.GAME_STATE.getGoal(x, y);
+                    final ItemStack goal = BingoMod.GAME_STATE.getGoal(x, y);
 
                     if (goal != null) {
 
-                        itemRender.renderItemAndEffectIntoGUI(player, goal.getTarget(), 16 + x * 24, 16 + y * 24);
+                        itemRender.renderItemAndEffectIntoGUI(player, goal, 16 + x * 24, 16 + y * 24);
                     }
                 }
             }

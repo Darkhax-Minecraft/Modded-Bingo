@@ -5,6 +5,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 
+import javax.annotation.Nonnull;
+
 import net.darkhax.bingo.BingoMod;
 import net.darkhax.bingo.api.BingoAPI;
 import net.darkhax.bingo.api.effects.collection.CollectionEffect;
@@ -13,7 +15,6 @@ import net.darkhax.bingo.api.effects.starting.StartingEffect;
 import net.darkhax.bingo.api.game.GameMode;
 import net.darkhax.bingo.api.goal.Goal;
 import net.darkhax.bingo.api.goal.GoalTable;
-import net.darkhax.bingo.api.goal.GoalTier;
 import net.darkhax.bingo.api.team.Team;
 import net.darkhax.bingo.network.PacketSyncGoal;
 import net.darkhax.bookshelf.util.StackUtils;
@@ -23,9 +24,7 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.nbt.NBTTagString;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.TextComponentTranslation;
-import net.minecraft.util.text.TextFormatting;
+import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.common.util.Constants.NBT;
 
 public class GameState {
@@ -33,19 +32,21 @@ public class GameState {
     private GameMode mode;
     private GoalTable table;
     private Random random;
-    private Goal[][] goals = new Goal[5][5];
+    private ItemStack[][] goals = new ItemStack[5][5];
     private Team[][][] completionStates = new Team[5][5][4];
     private boolean isActive = false;
     private boolean hasStarted = false;
     private Team winner = null;
 
-    public void create (Random random, GoalTable table) {
+    public void create (Random random, GameMode mode) {
 
-        this.reset();
-        this.table = table;
+        this.mode = mode;
+        this.table = mode.getRandomTable(random);
         this.random = random;
         this.rollGoals(random);
         this.isActive = true;
+        this.hasStarted = false;
+        this.completionStates = new Team[5][5][4];
     }
 
     public void start (MinecraftServer server) {
@@ -62,42 +63,30 @@ public class GameState {
 
         this.hasStarted = false;
         this.isActive = false;
-        this.reset();
+        this.mode = null;
     }
 
-    public void reset () {
-
-        this.goals = new Goal[5][5];
-        this.completionStates = new Team[5][5][4];
-        this.hasStarted = false;
-        this.isActive = false;
-        this.table = null;
-        this.winner = null;
-    }
-
-    public Goal getGoal (int x, int y) {
+    public ItemStack getGoal (int x, int y) {
 
         return this.goals[x][y];
     }
 
-    public void setGoal (int x, int y, Goal goal) {
+    public void setGoal (int x, int y, ItemStack goal) {
 
         this.goals[x][y] = goal;
     }
 
-    public void setGoalComplete (EntityPlayerMP player, ItemStack item, int x, int y) {
+    public void setGoalComplete (@Nonnull EntityPlayerMP player, ItemStack item, int x, int y) {
 
         final Team playerTeam = BingoPersistantData.getTeam(player);
 
-        if (player != null && this.completionStates[x][y][playerTeam.getTeamCorner()] == null) {
+        if (this.completionStates[x][y][playerTeam.getTeamCorner()] == null) {
 
             this.completionStates[x][y][playerTeam.getTeamCorner()] = playerTeam;
 
-            final Goal goal = this.getGoal(x, y);
-
             for (CollectionEffect effect : this.getMode().getItemCollectEffects()) {
                 
-                effect.onItemCollected(player, item, playerTeam, goal);
+                effect.onItemCollected(player, item, playerTeam);
             }
             
             BingoMod.NETWORK.sendToAll(new PacketSyncGoal(x, y, playerTeam.getTeamKey()));
@@ -199,9 +188,9 @@ public class GameState {
 
                 for (int y = 0; y < 5; y++) {
 
-                    final Goal goal = this.getGoal(x, y);
+                    final ItemStack goal = this.getGoal(x, y);
 
-                    if (StackUtils.areStacksSimilar(goal.getTarget(), stack)) {
+                    if (StackUtils.areStacksSimilar(goal, stack)) {
 
                         this.setGoalComplete(player, stack, x, y);
                     }
@@ -239,7 +228,7 @@ public class GameState {
 
         for (final Goal goal : generatedGoals) {
 
-            this.setGoal(xOff, yOff, goal);
+            this.setGoal(xOff, yOff, goal.getTarget());
 
             xOff++;
             if (xOff == 5) {
@@ -270,14 +259,9 @@ public class GameState {
         this.random = random;
     }
 
-    public Goal[][] getGoals () {
+    public ItemStack[][] getGoals () {
 
         return this.goals;
-    }
-
-    public void setGoals (Goal[][] goals) {
-
-        this.goals = goals;
     }
 
     public Team[][][] getCompletionStates () {
@@ -323,11 +307,10 @@ public class GameState {
 
     public void read (NBTTagCompound tag) {
 
-        this.reset();
-
         if (tag != null) {
 
-            this.table = null; //BingoAPI.getGoalTable(tag.getString("GoalTable"));
+            this.mode = BingoAPI.getGameMode(new ResourceLocation(tag.getString("GameMode")));
+            this.table = BingoAPI.getGoalTable(new ResourceLocation(tag.getString("GoalTable")));
 
             if (this.table != null) {
 
@@ -336,10 +319,7 @@ public class GameState {
                 for (int i = 0; i < goalsTag.tagCount(); i++) {
 
                     final NBTTagCompound goalTag = goalsTag.getCompoundTagAt(i);
-
-                    //final GoalTier tier = this.getTable().getTierByName(goalTag.getString("Tier"));
-                    //final Goal goal = tier.getGoalByName(goalTag.getString("Goal"));
-                    //this.setGoal(goalTag.getInteger("X"), goalTag.getInteger("Y"), goal);
+                    this.setGoal(goalTag.getInteger("X"), goalTag.getInteger("Y"), new ItemStack(goalTag.getCompoundTag("ItemStack")));
                 }
 
                 final NBTTagList completionTags = tag.getTagList("Completion", NBT.TAG_COMPOUND);
@@ -372,22 +352,22 @@ public class GameState {
 
         if (this.getTable() != null) {
 
-            //tag.setString("GoalTable", this.getTable().getName());
+            tag.setString("GameMode", this.mode.getModeId().toString());
+            tag.setString("GoalTable", this.getTable().getName().toString());
 
-            final NBTTagList goals = new NBTTagList();
-            tag.setTag("Goals", goals);
+            final NBTTagList goalTags = new NBTTagList();
+            tag.setTag("Goals", goalTags);
 
             for (int x = 0; x < 5; x++) {
 
                 for (int y = 0; y < 5; y++) {
 
-                    final Goal goal = this.goals[x][y];
+                    final ItemStack goal = this.goals[x][y];
                     final NBTTagCompound goalTag = new NBTTagCompound();
                     goalTag.setInteger("X", x);
                     goalTag.setInteger("Y", y);
-                    //goalTag.setString("Tier", goal.getTier());
-                    //goalTag.setString("Goal", goal.getName());
-                    goals.appendTag(goalTag);
+                    goalTag.setTag("ItemStack", goal.writeToNBT(new NBTTagCompound()));
+                    goalTags.appendTag(goalTag);
                 }
             }
 
