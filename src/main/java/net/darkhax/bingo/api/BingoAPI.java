@@ -49,6 +49,11 @@ import net.minecraft.world.biome.Biome;
 import net.minecraftforge.fml.common.registry.EntityEntry;
 import net.minecraftforge.fml.common.registry.ForgeRegistries;
 
+/**
+ * This is the central API class for interacting with the bingo mod. If you are coding custom
+ * support you should attempt to limit your references to this class in order to limit the
+ * impact of breaking changes.
+ */
 public class BingoAPI {
 
     /**
