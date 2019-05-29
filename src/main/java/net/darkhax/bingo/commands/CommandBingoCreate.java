@@ -32,9 +32,19 @@ public class CommandBingoCreate extends Command {
 
         final GameMode gameMode = args.length >= 1 ? BingoAPI.getGameMode(new ResourceLocation(args[0])) : BingoAPI.getGameMode(new ResourceLocation("bingo:default"));
         final Random random = args.length >= 2 ? new Random(args[1].hashCode()) : new Random();
-        BingoAPI.GAME_STATE.create(random, gameMode);
+        
+        if (gameMode != null) {
+            
+            BingoAPI.GAME_STATE.create(random, gameMode);
 
-        server.getPlayerList().sendMessage(new TextComponentTranslation("command.bingo.create.announce", sender.getDisplayName()));
-        BingoMod.NETWORK.sendToAll(new PacketSyncGameState(BingoAPI.GAME_STATE.write()));
+            server.getPlayerList().sendMessage(new TextComponentTranslation("command.bingo.create.announce", sender.getDisplayName()));
+            BingoMod.NETWORK.sendToAll(new PacketSyncGameState(BingoAPI.GAME_STATE.write()));
+        }
+            
+        
+        else {
+            
+            throw new CommandException("command.bingo.create.unknown");
+        }
     }
 }

@@ -7,6 +7,7 @@ command.bingo.team.change=[Bingo] %s has changed to the %s team.
 
 command.bingo.create.usage=/bingo create [gamemode] [seed] 
 command.bingo.create.announce=[Bingo] %s has created a game of bingo. Use "/bingo team <red|green|blue|yellow>" to join a team if you have not yet. The game will start when "/bingo start" has been used.
+command.bingo.create.unknown=[Bingp] No game mode exists with the ID %s.
 
 command.bingo.start.usage=/bingo start
 command.bingo.start.started=[Bingo] %s has started the game. Have fun!
