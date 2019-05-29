@@ -1,6 +1,7 @@
 package net.darkhax.bingo.api;
 
 import java.io.BufferedReader;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -129,6 +130,16 @@ public class BingoAPI {
      */
     private static Map<ResourceLocation, GoalTable> goalTables = new HashMap<>();
 
+    public static Collection<ResourceLocation> getGameModeKeys() {
+        
+        return gameModes.keySet();
+    }
+    
+    public static Collection<ResourceLocation> getTableKeys() {
+        
+        return goalTables.keySet();
+    }
+    
     /**
      * Registers a new type of collection effect with the Gson type adapter. This allows the
      * effect to be used by data driven game modes.
@@ -267,10 +278,18 @@ public class BingoAPI {
 
         if (mode != null && mode.getModeId() != null) {
 
+            for (ResourceLocation tableId : mode.getGoalTables()) {
+                
+                if (!goalTables.containsKey(tableId)) {
+                    
+                    BingoMod.LOG.error("The game mode {} references unknown table {}. It will not be registered.", mode.getModeId().toString(), tableId.toString());
+                    return;
+                }
+            }
+            
             BingoMod.LOG.info("Successfully loaded Game Mode: " + mode.getModeId().toString());
             gameModes.put(mode.getModeId(), mode);
         }
-
         // TODO handle the error cases
     }
 
