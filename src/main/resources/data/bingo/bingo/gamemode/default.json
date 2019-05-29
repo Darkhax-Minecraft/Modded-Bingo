@@ -26,7 +26,7 @@
       "type": "bingo:shrink_item"
     }
   ],
-  "endingEffects": [
+  "winEffects": [
     {
       "type": "bingo:announcement"
     },
