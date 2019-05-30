@@ -1,8 +1,13 @@
 package net.darkhax.bingo.commands;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import net.darkhax.bingo.BingoMod;
 import net.darkhax.bingo.api.BingoAPI;
 import net.darkhax.bingo.api.effects.spawn.SpawnEffect;
+import net.darkhax.bingo.api.team.Team;
+import net.darkhax.bingo.data.BingoPersistantData;
 import net.darkhax.bingo.network.PacketSyncGameState;
 import net.darkhax.bookshelf.command.Command;
 import net.darkhax.bookshelf.util.MathsUtils;
@@ -46,19 +51,31 @@ public class CommandBingoStart extends Command {
         server.getPlayerList().sendMessage(new TextComponentTranslation("command.bingo.start.started", sender.getDisplayName()));
         BingoMod.NETWORK.sendToAll(new PacketSyncGameState(BingoAPI.GAME_STATE.write()));
 
+        Map<Team, BlockPos> teamPositions = new HashMap<>();
+       
+        if (BingoAPI.GAME_STATE.shouldGroupTeams()) {
+            
+            for (Team team : BingoAPI.TEAMS) {
+                
+                teamPositions.put(team, getRandomPosition(sender.getEntityWorld(), 0));
+            }
+        }
+        
         for (final EntityPlayerMP player : server.getPlayerList().getPlayers()) {
 
+            BlockPos spawnPos = BingoAPI.GAME_STATE.shouldGroupTeams() ? teamPositions.get(BingoPersistantData.getTeam(player)) : this.getRandomPosition(player.world, 0);
+            
             for (final SpawnEffect effect : BingoAPI.GAME_STATE.getMode().getSpawnEffect()) {
 
-                effect.onPlayerSpawn(player, this.getRandomPosition(player.world));
+                effect.onPlayerSpawn(player, spawnPos);
             }
         }
     }
 
-    private BlockPos getRandomPosition (World world) {
+    private BlockPos getRandomPosition (World world, int depth) {
 
-        final int x = MathsUtils.nextIntInclusive(-29_999_900, 29_999_900);
-        final int z = MathsUtils.nextIntInclusive(-29_999_900, 29_999_900);
+        final int x = MathsUtils.nextIntInclusive(-3_000_000, 3_000_000);
+        final int z = MathsUtils.nextIntInclusive(-3_000_000, 3_000_000);
 
         final BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos(x, 255, z);
 
@@ -68,10 +85,10 @@ public class CommandBingoStart extends Command {
 
             if (pos.getY() <= 10) {
 
-                return pos;
+                return depth == 100 ? pos : getRandomPosition(world, depth + 1);
             }
         }
 
-        return pos.move(EnumFacing.UP);
+        return !world.isSideSolid(pos, EnumFacing.UP) && depth < 100 ? getRandomPosition(world, depth + 1) : pos.move(EnumFacing.UP);
     }
 }

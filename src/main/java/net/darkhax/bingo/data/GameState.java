@@ -68,6 +68,11 @@ public class GameState {
      * Whether or not the game has been started. The state will not update while this is false.
      */
     private boolean hasStarted = false;
+    
+    /**
+     * Whether or not teams should be grouped together.
+     */
+    private boolean groupTeams = true;
 
     /**
      * The team that has won the game. This can be null.
@@ -81,7 +86,7 @@ public class GameState {
      * @param random An instance of random.
      * @param mode The mode to play.
      */
-    public void create (Random random, GameMode mode) {
+    public void create (Random random, GameMode mode, boolean groupTeams) {
 
         this.mode = mode;
         this.table = mode.getRandomTable(random);
@@ -90,6 +95,7 @@ public class GameState {
         this.isActive = true;
         this.hasStarted = false;
         this.completionStates = new Team[5][5][4];
+        this.groupTeams = groupTeams;
     }
 
     /**
@@ -116,6 +122,7 @@ public class GameState {
         this.isActive = false;
         this.mode = null;
         this.table = null;
+        this.groupTeams = false;
     }
 
     /**
@@ -332,7 +339,7 @@ public class GameState {
             generatedGoals.add(goal);
         }
 
-        Collections.shuffle(generatedGoals);
+        Collections.shuffle(generatedGoals, this.random);
 
         int xOff = 0;
         int yOff = 0;
@@ -449,6 +456,7 @@ public class GameState {
         this.random = null;
         this.goals = new ItemStack[5][5];
         this.completionStates = new Team[5][5][4];
+        this.groupTeams = false;
         
         if (tag != null) {
 
@@ -457,6 +465,7 @@ public class GameState {
             this.table = BingoAPI.getGoalTable(new ResourceLocation(tag.getString("GoalTable")));
             this.isActive = tag.getBoolean("IsActive");
             this.hasStarted = tag.getBoolean("HasStarted");
+            this.groupTeams = tag.getBoolean("GroupTeams");
 
             if (this.table != null) {
 
@@ -502,6 +511,7 @@ public class GameState {
 
         tag.setBoolean("IsActive", this.isActive());
         tag.setBoolean("HasStarted", this.hasStarted());
+        tag.setBoolean("GroupTeams", this.shouldGroupTeams());
 
         if (this.getTable() != null && this.mode != null) {
 
@@ -554,5 +564,15 @@ public class GameState {
         }
 
         return tag;
+    }
+
+    public boolean isHasStarted () {
+        
+        return hasStarted;
+    }
+
+    public boolean shouldGroupTeams () {
+        
+        return groupTeams;
     }
 }
