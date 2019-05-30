@@ -1,6 +1,8 @@
 package net.darkhax.bingo.commands;
 
+import net.darkhax.bingo.BingoMod;
 import net.darkhax.bingo.api.BingoAPI;
+import net.darkhax.bingo.network.PacketSyncGameState;
 import net.darkhax.bookshelf.command.Command;
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
@@ -26,5 +28,6 @@ public class CommandBingoStop extends Command {
 
         BingoAPI.GAME_STATE.end();
         server.getPlayerList().sendMessage(new TextComponentTranslation("command.bingo.stop.stopped", sender.getDisplayName()));
+        BingoMod.NETWORK.sendToAll(new PacketSyncGameState(BingoAPI.GAME_STATE.write()));
     }
 }
