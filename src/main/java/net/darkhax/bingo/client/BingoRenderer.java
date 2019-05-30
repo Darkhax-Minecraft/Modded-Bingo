@@ -100,7 +100,7 @@ public class BingoRenderer {
 
                     if (goal != null) {
 
-                        itemRender.renderItemAndEffectIntoGUI(player, goal, 16 + x * 24, 16 + y * 24);
+                        itemRender.renderItemAndEffectIntoGUI(null, goal, 16 + x * 24, 16 + y * 24);
                     }
                 }
             }
