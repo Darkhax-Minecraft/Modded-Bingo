@@ -35,7 +35,7 @@ public class CommandBingoCreate extends Command {
     public void execute (MinecraftServer server, ICommandSender sender, String[] args) throws CommandException {
 
         final GameMode gameMode = args.length >= 1 ? BingoAPI.getGameMode(new ResourceLocation(args[0])) : BingoAPI.getGameMode(new ResourceLocation("bingo:default"));
-        final boolean groupTeams = args.length >= 2 ? parseBoolean(args[1]) : false;
+        final boolean groupTeams = args.length >= 2 ? parseBoolean(args[1]) : true;
         final Random random = args.length >= 3 ? new Random(args[2].hashCode()) : new Random();
         
         if (gameMode != null) {
