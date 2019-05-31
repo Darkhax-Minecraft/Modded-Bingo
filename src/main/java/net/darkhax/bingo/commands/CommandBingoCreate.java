@@ -5,7 +5,7 @@ import java.util.Random;
 
 import javax.annotation.Nullable;
 
-import net.darkhax.bingo.BingoMod;
+import net.darkhax.bingo.ModdedBingo;
 import net.darkhax.bingo.api.BingoAPI;
 import net.darkhax.bingo.api.game.GameMode;
 import net.darkhax.bingo.network.PacketSyncGameState;
@@ -43,7 +43,7 @@ public class CommandBingoCreate extends Command {
             BingoAPI.GAME_STATE.create(random, gameMode, groupTeams);
 
             server.getPlayerList().sendMessage(new TextComponentTranslation("command.bingo.create.announce", sender.getDisplayName()));
-            BingoMod.NETWORK.sendToAll(new PacketSyncGameState(BingoAPI.GAME_STATE.write()));
+            ModdedBingo.NETWORK.sendToAll(new PacketSyncGameState(BingoAPI.GAME_STATE.write()));
         }           
         
         else {

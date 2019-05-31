@@ -28,7 +28,7 @@ public class BingoEventHandler {
         // When a player connects to the server, sync their client data with the server's data.
         if (event.player instanceof EntityPlayerMP) {
 
-            BingoMod.NETWORK.sendTo(new PacketSyncGameState(BingoAPI.GAME_STATE.write()), (EntityPlayerMP) event.player);
+            ModdedBingo.NETWORK.sendTo(new PacketSyncGameState(BingoAPI.GAME_STATE.write()), (EntityPlayerMP) event.player);
         }
     }
 

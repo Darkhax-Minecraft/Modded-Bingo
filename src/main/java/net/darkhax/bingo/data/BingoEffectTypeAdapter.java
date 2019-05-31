@@ -9,7 +9,7 @@ import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
-import net.darkhax.bingo.BingoMod;
+import net.darkhax.bingo.ModdedBingo;
 
 /**
  * A type adapter for Gson that will map bingo effects based on an ID switch.
@@ -31,7 +31,7 @@ public class BingoEffectTypeAdapter<T> implements JsonDeserializer<T> {
 
         if (this.effectClasses.containsKey(key)) {
 
-            BingoMod.LOG.warn("Could not register {} with id {}. It is already assigned to {}.", effectClass.getName(), key, this.effectClasses.get(key).getName());
+            ModdedBingo.LOG.warn("Could not register {} with id {}. It is already assigned to {}.", effectClass.getName(), key, this.effectClasses.get(key).getName());
         }
 
         else {
@@ -52,7 +52,7 @@ public class BingoEffectTypeAdapter<T> implements JsonDeserializer<T> {
         // Fail early if there is no type value defined by the entry.
         if (jsonType == null) {
 
-            BingoMod.LOG.error("Could not load an effect, it has no type value. Data: {}", jsonObject.toString());
+            ModdedBingo.LOG.error("Could not load an effect, it has no type value. Data: {}", jsonObject.toString());
             return null;
         }
 
@@ -65,7 +65,7 @@ public class BingoEffectTypeAdapter<T> implements JsonDeserializer<T> {
         // Fail early if the class does not exist.
         if (effectClass == null) {
 
-            BingoMod.LOG.error("Could not find a type for {}", type);
+            ModdedBingo.LOG.error("Could not find a type for {}", type);
             return null;
         }
 
@@ -73,7 +73,7 @@ public class BingoEffectTypeAdapter<T> implements JsonDeserializer<T> {
         final T result = context.deserialize(jsonObject, effectClass);
         
         if (result == null) {
-            BingoMod.LOG.error("Failed to resolve {}", jsonObject.toString());
+            ModdedBingo.LOG.error("Failed to resolve {}", jsonObject.toString());
         }
         
         return result;

@@ -10,7 +10,7 @@ import javax.annotation.Nullable;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
-import net.darkhax.bingo.BingoMod;
+import net.darkhax.bingo.ModdedBingo;
 import net.darkhax.bingo.api.effects.collection.CollectionEffect;
 import net.darkhax.bingo.api.effects.collection.CollectionEffectAnnouncement;
 import net.darkhax.bingo.api.effects.collection.CollectionEffectFirework;
@@ -227,7 +227,7 @@ public class BingoAPI {
     /**
      * Loads all of the bingo game data from the relevant json files. This is automatically
      * called by
-     * {@link BingoMod#init(net.minecraftforge.fml.common.event.FMLInitializationEvent)},
+     * {@link ModdedBingo#init(net.minecraftforge.fml.common.event.FMLInitializationEvent)},
      * however it can be called again to force a reload of the data.
      */
     public static void loadData () {
@@ -235,11 +235,11 @@ public class BingoAPI {
         gameModes.clear();
         goalTables.clear();
 
-        final DataLoader loader = new DataLoader(BingoMod.LOG);
+        final DataLoader loader = new DataLoader(ModdedBingo.LOG);
 
-        loader.addDataProvider(new DataProviderModsOverridable(BingoMod.MOD_ID));
-        loader.addDataProvider(new DataProviderConfigs(BingoMod.MOD_ID));
-        loader.addDataProvider(new DataProviderAddons(BingoMod.MOD_ID));
+        loader.addDataProvider(new DataProviderModsOverridable(ModdedBingo.MOD_ID));
+        loader.addDataProvider(new DataProviderConfigs(ModdedBingo.MOD_ID));
+        loader.addDataProvider(new DataProviderAddons(ModdedBingo.MOD_ID));
 
         loader.addProcessor("goaltable", BingoAPI::processGoalTables);
         loader.addProcessor("gamemode", BingoAPI::processGameModes);
@@ -259,7 +259,7 @@ public class BingoAPI {
 
         if (table != null && table.getName() != null) {
 
-            BingoMod.LOG.info("Successfully loaded Goal Table: " + table.getName().toString());
+            ModdedBingo.LOG.info("Successfully loaded Goal Table: " + table.getName().toString());
             goalTables.put(table.getName(), table);
         }
 
@@ -282,12 +282,12 @@ public class BingoAPI {
                 
                 if (!goalTables.containsKey(tableId)) {
                     
-                    BingoMod.LOG.error("The game mode {} references unknown table {}. It will not be registered.", mode.getModeId().toString(), tableId.toString());
+                    ModdedBingo.LOG.error("The game mode {} references unknown table {}. It will not be registered.", mode.getModeId().toString(), tableId.toString());
                     return;
                 }
             }
             
-            BingoMod.LOG.info("Successfully loaded Game Mode: " + mode.getModeId().toString());
+            ModdedBingo.LOG.info("Successfully loaded Game Mode: " + mode.getModeId().toString());
             gameModes.put(mode.getModeId(), mode);
         }
         // TODO handle the error cases

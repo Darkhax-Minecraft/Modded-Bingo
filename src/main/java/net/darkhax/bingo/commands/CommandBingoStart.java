@@ -3,7 +3,7 @@ package net.darkhax.bingo.commands;
 import java.util.HashMap;
 import java.util.Map;
 
-import net.darkhax.bingo.BingoMod;
+import net.darkhax.bingo.ModdedBingo;
 import net.darkhax.bingo.api.BingoAPI;
 import net.darkhax.bingo.api.effects.spawn.SpawnEffect;
 import net.darkhax.bingo.api.team.Team;
@@ -49,7 +49,7 @@ public class CommandBingoStart extends Command {
 
         BingoAPI.GAME_STATE.start(server);
         server.getPlayerList().sendMessage(new TextComponentTranslation("command.bingo.start.started", sender.getDisplayName()));
-        BingoMod.NETWORK.sendToAll(new PacketSyncGameState(BingoAPI.GAME_STATE.write()));
+        ModdedBingo.NETWORK.sendToAll(new PacketSyncGameState(BingoAPI.GAME_STATE.write()));
 
         Map<Team, BlockPos> teamPositions = new HashMap<>();
        

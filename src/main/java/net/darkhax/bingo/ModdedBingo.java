@@ -25,7 +25,7 @@ import net.minecraftforge.fml.common.event.FMLServerStoppingEvent;
 import net.minecraftforge.fml.relauncher.Side;
 
 @Mod(modid = "bingo", name = "Bingo", version = "@VERSION@", certificateFingerprint = "@FINGERPRINT@", dependencies = "required-after:bookshelf@[2.3.573,)")
-public class BingoMod {
+public class ModdedBingo {
 
     public static final String MOD_ID = "bingo";
     public static final NetworkHandler NETWORK = new NetworkHandler(MOD_ID);

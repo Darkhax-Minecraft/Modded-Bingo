@@ -8,7 +8,7 @@ import java.util.Random;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-import net.darkhax.bingo.BingoMod;
+import net.darkhax.bingo.ModdedBingo;
 import net.darkhax.bingo.api.BingoAPI;
 import net.darkhax.bingo.api.effects.collection.CollectionEffect;
 import net.darkhax.bingo.api.effects.ending.GameWinEffect;
@@ -170,7 +170,7 @@ public class GameState {
                 effect.onItemCollected(player, item, playerTeam);
             }
 
-            BingoMod.NETWORK.sendToAll(new PacketSyncGoal(x, y, playerTeam.getTeamKey()));
+            ModdedBingo.NETWORK.sendToAll(new PacketSyncGoal(x, y, playerTeam.getTeamKey()));
         }
 
         this.updateWinState(player.server);
