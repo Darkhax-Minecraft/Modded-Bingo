@@ -26,8 +26,16 @@ public class CommandBingoStop extends Command {
     @Override
     public void execute (MinecraftServer server, ICommandSender sender, String[] args) throws CommandException {
 
-        BingoAPI.GAME_STATE.end();
-        server.getPlayerList().sendMessage(new TextComponentTranslation("command.bingo.stop.stopped", sender.getDisplayName()));
-        BingoMod.NETWORK.sendToAll(new PacketSyncGameState(BingoAPI.GAME_STATE.write()));
+        if (BingoAPI.GAME_STATE.isActive()) {
+            
+            BingoAPI.GAME_STATE.end();
+            server.getPlayerList().sendMessage(new TextComponentTranslation("command.bingo.stop.stopped", sender.getDisplayName()));
+            BingoMod.NETWORK.sendToAll(new PacketSyncGameState(BingoAPI.GAME_STATE.write()));
+        }
+        
+        else {
+            
+            throw new CommandException("command.bingo.stop.nogame");
+        }
     }
 }

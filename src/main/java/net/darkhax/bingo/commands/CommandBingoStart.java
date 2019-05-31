@@ -42,7 +42,7 @@ public class CommandBingoStart extends Command {
             throw new CommandException("command.bingo.info.notactive");
         }
 
-        if (BingoAPI.GAME_STATE.hasStarted()) {
+        if (BingoAPI.GAME_STATE.hasStarted() || BingoAPI.GAME_STATE.getWinner() != null) {
 
             throw new CommandException("command.bingo.info.alreadystarted");
         }
