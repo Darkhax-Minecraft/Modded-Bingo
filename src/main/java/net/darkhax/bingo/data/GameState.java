@@ -123,6 +123,7 @@ public class GameState {
         this.mode = null;
         this.table = null;
         this.groupTeams = false;
+        this.winner = null;
     }
 
     /**

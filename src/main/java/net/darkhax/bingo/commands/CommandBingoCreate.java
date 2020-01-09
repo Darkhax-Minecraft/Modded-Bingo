@@ -40,6 +40,13 @@ public class CommandBingoCreate extends Command {
         
         if (gameMode != null) {
             
+        	if (BingoAPI.GAME_STATE.hasStarted() || BingoAPI.GAME_STATE.isActive()) {
+        		
+                BingoAPI.GAME_STATE.end();
+                server.getPlayerList().sendMessage(new TextComponentTranslation("command.bingo.stop.stopped", sender.getDisplayName()));
+                ModdedBingo.NETWORK.sendToAll(new PacketSyncGameState(BingoAPI.GAME_STATE.write()));
+        	}
+        	
             BingoAPI.GAME_STATE.create(random, gameMode, groupTeams);
 
             server.getPlayerList().sendMessage(new TextComponentTranslation("command.bingo.create.announce", sender.getDisplayName()));
