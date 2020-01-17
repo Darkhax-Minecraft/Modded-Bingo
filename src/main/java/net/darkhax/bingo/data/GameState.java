@@ -74,6 +74,8 @@ public class GameState {
      */
     private boolean groupTeams = true;
 
+    private boolean blackout = false;
+    
     /**
      * The team that has won the game. This can be null.
      */
@@ -86,7 +88,7 @@ public class GameState {
      * @param random An instance of random.
      * @param mode The mode to play.
      */
-    public void create (Random random, GameMode mode, boolean groupTeams) {
+    public void create (Random random, GameMode mode, boolean groupTeams, boolean blackout) {
 
         this.mode = mode;
         this.table = mode.getRandomTable(random);
@@ -96,6 +98,7 @@ public class GameState {
         this.hasStarted = false;
         this.completionStates = new Team[5][5][4];
         this.groupTeams = groupTeams;
+        this.blackout = blackout;
     }
 
     /**
@@ -222,6 +225,22 @@ public class GameState {
         }
     }
 
+    private boolean doesTeamHaveAll(Team team) {
+    	
+        for (int x = 0; x < 5; x++) {
+
+            for (int y = 0; y < 5; y++) {
+
+                if (!this.hasCompletedGoal(x, y, team)) {
+
+                	return false;
+                }
+            }
+        }
+        
+        return true;
+    }
+    
     /**
      * Looks at the board data to find a team that has won the game.
      *
@@ -232,57 +251,67 @@ public class GameState {
 
         for (final Team team : BingoAPI.TEAMS) {
 
-            // Check vertical lines
-            for (int x = 0; x < 5; x++) {
-
-                boolean hasFailed = false;
-
-                for (int y = 0; y < 5; y++) {
-
-                    if (!this.hasCompletedGoal(x, y, team)) {
-
-                        hasFailed = true;
-                        break;
-                    }
-                }
-
-                if (!hasFailed) {
-
-                    return team;
-                }
-            }
-
-            // Check horizontal lines
-            for (int y = 0; y < 5; y++) {
-
-                boolean hasFailed = false;
-
+        	if (this.isBlackout()) {
+        		
+        		if (doesTeamHaveAll(team)) {
+        		    return team;
+        		}
+        	}
+        	
+        	else {
+        		
+                // Check vertical lines
                 for (int x = 0; x < 5; x++) {
 
-                    if (!this.hasCompletedGoal(x, y, team)) {
+                    boolean hasFailed = false;
 
-                        hasFailed = true;
-                        break;
+                    for (int y = 0; y < 5; y++) {
+
+                        if (!this.hasCompletedGoal(x, y, team)) {
+
+                            hasFailed = true;
+                            break;
+                        }
+                    }
+
+                    if (!hasFailed) {
+
+                        return team;
                     }
                 }
 
-                if (!hasFailed) {
+                // Check horizontal lines
+                for (int y = 0; y < 5; y++) {
+
+                    boolean hasFailed = false;
+
+                    for (int x = 0; x < 5; x++) {
+
+                        if (!this.hasCompletedGoal(x, y, team)) {
+
+                            hasFailed = true;
+                            break;
+                        }
+                    }
+
+                    if (!hasFailed) {
+
+                        return team;
+                    }
+                }
+
+                // Check one horizontal line
+                if (this.hasCompletedGoal(0, 0, team) && this.hasCompletedGoal(1, 1, team) && this.hasCompletedGoal(2, 2, team) && this.hasCompletedGoal(3, 3, team) && this.hasCompletedGoal(4, 4, team)) {
 
                     return team;
                 }
-            }
 
-            // Check one horizontal line
-            if (this.hasCompletedGoal(0, 0, team) && this.hasCompletedGoal(1, 1, team) && this.hasCompletedGoal(2, 2, team) && this.hasCompletedGoal(3, 3, team) && this.hasCompletedGoal(4, 4, team)) {
+                // Check other horizontal line
+                if (this.hasCompletedGoal(0, 4, team) && this.hasCompletedGoal(1, 3, team) && this.hasCompletedGoal(2, 2, team) && this.hasCompletedGoal(3, 1, team) && this.hasCompletedGoal(4, 0, team)) {
 
-                return team;
-            }
-
-            // Check other horizontal line
-            if (this.hasCompletedGoal(0, 4, team) && this.hasCompletedGoal(1, 3, team) && this.hasCompletedGoal(2, 2, team) && this.hasCompletedGoal(3, 1, team) && this.hasCompletedGoal(4, 0, team)) {
-
-                return team;
-            }
+                    return team;
+                }
+        	}
         }
 
         return null;
@@ -458,6 +487,7 @@ public class GameState {
         this.goals = new ItemStack[5][5];
         this.completionStates = new Team[5][5][4];
         this.groupTeams = false;
+        this.blackout = false;
         
         if (tag != null) {
 
@@ -467,6 +497,7 @@ public class GameState {
             this.isActive = tag.getBoolean("IsActive");
             this.hasStarted = tag.getBoolean("HasStarted");
             this.groupTeams = tag.getBoolean("GroupTeams");
+            this.blackout = tag.getBoolean("Blackout");
 
             if (this.table != null) {
 
@@ -513,6 +544,7 @@ public class GameState {
         tag.setBoolean("IsActive", this.isActive());
         tag.setBoolean("HasStarted", this.hasStarted());
         tag.setBoolean("GroupTeams", this.shouldGroupTeams());
+        tag.setBoolean("Blackout", this.blackout);
 
         if (this.getTable() != null && this.mode != null) {
 
@@ -575,5 +607,10 @@ public class GameState {
     public boolean shouldGroupTeams () {
         
         return groupTeams;
+    }
+    
+    public boolean isBlackout() {
+    	
+    	return this.blackout;
     }
 }

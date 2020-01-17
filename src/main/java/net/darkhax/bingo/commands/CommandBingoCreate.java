@@ -36,7 +36,8 @@ public class CommandBingoCreate extends Command {
 
         final GameMode gameMode = args.length >= 1 ? BingoAPI.getGameMode(new ResourceLocation(args[0])) : BingoAPI.getGameMode(new ResourceLocation("bingo:default"));
         final boolean groupTeams = args.length >= 2 ? parseBoolean(args[1]) : true;
-        final Random random = args.length >= 3 ? new Random(args[2].hashCode()) : new Random();
+        final boolean blackout = args.length >= 3 ? parseBoolean(args[2]) : false;
+        final Random random = args.length >= 4 ? new Random(args[3].hashCode()) : new Random();
         
         if (gameMode != null) {
             
@@ -47,9 +48,9 @@ public class CommandBingoCreate extends Command {
                 ModdedBingo.NETWORK.sendToAll(new PacketSyncGameState(BingoAPI.GAME_STATE.write()));
         	}
         	
-            BingoAPI.GAME_STATE.create(random, gameMode, groupTeams);
+            BingoAPI.GAME_STATE.create(random, gameMode, groupTeams, blackout);
 
-            server.getPlayerList().sendMessage(new TextComponentTranslation("command.bingo.create.announce", sender.getDisplayName()));
+            server.getPlayerList().sendMessage(new TextComponentTranslation("command.bingo.create.announce" + (blackout ? ".blackout" : ""), sender.getDisplayName()));
             ModdedBingo.NETWORK.sendToAll(new PacketSyncGameState(BingoAPI.GAME_STATE.write()));
         }           
         
