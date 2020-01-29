@@ -47,7 +47,7 @@ public class CommandBingoStart extends Command {
             throw new CommandException("command.bingo.info.alreadystarted");
         }
 
-        BingoAPI.GAME_STATE.start(server);
+        BingoAPI.GAME_STATE.start(server, sender.getEntityWorld().getTotalWorldTime());
         server.getPlayerList().sendMessage(new TextComponentTranslation("command.bingo.start.started", sender.getDisplayName()));
         ModdedBingo.NETWORK.sendToAll(new PacketSyncGameState(BingoAPI.GAME_STATE.write()));
 

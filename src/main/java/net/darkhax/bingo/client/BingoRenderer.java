@@ -4,8 +4,9 @@ import org.lwjgl.opengl.GL11;
 
 import net.darkhax.bingo.api.BingoAPI;
 import net.darkhax.bingo.api.team.Team;
+import net.darkhax.bingo.data.GameState;
+import net.darkhax.bookshelf.util.MathsUtils;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.client.gui.Gui;
 import net.minecraft.client.renderer.BufferBuilder;
 import net.minecraft.client.renderer.GlStateManager;
@@ -15,6 +16,7 @@ import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.StringUtils;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
@@ -29,18 +31,33 @@ public class BingoRenderer {
      * the highlight when a team has completed a goal.
      */
     private static final int[][] teamUVs = new int[][] { new int[] { 0, 0, 11, 11 }, new int[] { 11, 0, 11, 11 }, new int[] { 0, 11, 11, 11 }, new int[] { 11, 11, 11, 11 } };
-
+    
+    public static String getTimeDisplay(long seconds) {
+    	
+        long s = seconds % 60;
+        long m = (seconds / 60) % 60;
+        long h = (seconds / (60 * 60)) % 24;
+        return String.format("%d:%02d:%02d", h,m,s);
+    }
+    
     @SubscribeEvent
     public static void render (TickEvent.RenderTickEvent event) {
 
+    	GameState bingo = BingoAPI.GAME_STATE;
+    	
         final Minecraft mc = Minecraft.getMinecraft();
-
+        
         // Prevent shwoing the game board while crafting, in a gui, on the debug screen, or in
         // the player tab list.
         if (event.phase == Phase.END && BingoAPI.GAME_STATE.isActive() && Minecraft.isGuiEnabled() && mc.currentScreen == null && !mc.gameSettings.showDebugInfo && !(mc.gameSettings.keyBindPlayerList.isKeyDown() && !mc.isIntegratedServerRunning())) {
 
+            if (bingo.isActive() && bingo.getStartTime() > 0 && mc.world != null) {
+
+            	long endTime = bingo.getEndTime() >= bingo.getStartTime() ? bingo.getEndTime() : mc.world.getTotalWorldTime();
+                mc.fontRenderer.drawString("Time: " + StringUtils.ticksToElapsedTime((int) (endTime - bingo.getStartTime())), 14, 2, 0xffffff, false);
+            }
+            
             final RenderItem itemRender = Minecraft.getMinecraft().getRenderItem();
-            final EntityPlayerSP player = Minecraft.getMinecraft().player;
 
             GlStateManager.pushMatrix();
 
@@ -48,7 +65,7 @@ public class BingoRenderer {
             GlStateManager.color(1f, 1f, 1f, 1f);
 
             // Render the background image for the bingo board
-            Minecraft.getMinecraft().renderEngine.bindTexture(new ResourceLocation("bingo", "hud/bingo_board.png"));
+            mc.renderEngine.bindTexture(new ResourceLocation("bingo", "hud/bingo_board.png"));
             final float texSize = 256f;
             Gui.drawModalRectWithCustomSizedTexture(10, 10, 0, 0, 132, 132, texSize, texSize);
 

@@ -76,6 +76,10 @@ public class GameState {
 
     private boolean blackout = false;
     
+    private long startTime = -1L;
+    
+    private long endTime = -1L;
+    
     /**
      * The team that has won the game. This can be null.
      */
@@ -106,9 +110,10 @@ public class GameState {
      *
      * @param server The server instance.
      */
-    public void start (MinecraftServer server) {
+    public void start (MinecraftServer server, long startTime) {
 
         this.hasStarted = true;
+        this.startTime = startTime;
 
         for (final StartingEffect effect : this.mode.getStartingEffects()) {
 
@@ -127,6 +132,8 @@ public class GameState {
         this.table = null;
         this.groupTeams = false;
         this.winner = null;
+        this.startTime = -1L;
+        this.endTime = -1L;
     }
 
     /**
@@ -177,7 +184,7 @@ public class GameState {
             ModdedBingo.NETWORK.sendToAll(new PacketSyncGoal(x, y, playerTeam.getTeamKey()));
         }
 
-        this.updateWinState(player.server);
+        this.updateWinState(player.server, player.world.getTotalWorldTime());
     }
 
     /**
@@ -210,14 +217,14 @@ public class GameState {
      *
      * @param server An instance of the server.
      */
-    public void updateWinState (MinecraftServer server) {
+    public void updateWinState (MinecraftServer server, long time) {
 
         this.winner = this.checkWinState();
 
         if (this.winner != null && this.hasStarted() && this.isActive()) {
 
             this.hasStarted = false;
-
+            this.endTime = time;
             for (final GameWinEffect endEffect : this.mode.getWinEffects()) {
 
                 endEffect.onGameCompleted(server, this.winner);
@@ -470,7 +477,17 @@ public class GameState {
 
         return this.mode;
     }
+    
+    public long getStartTime() {
+    	
+    	return this.startTime;
+    }
 
+    public long getEndTime() {
+    	
+    	return this.endTime;
+    }
+    
     /**
      * Reads the game state from an NBT tag.
      *
@@ -488,6 +505,8 @@ public class GameState {
         this.completionStates = new Team[5][5][4];
         this.groupTeams = false;
         this.blackout = false;
+        this.startTime = -1L;
+        this.endTime = -1L;
         
         if (tag != null) {
 
@@ -498,6 +517,9 @@ public class GameState {
             this.hasStarted = tag.getBoolean("HasStarted");
             this.groupTeams = tag.getBoolean("GroupTeams");
             this.blackout = tag.getBoolean("Blackout");
+            this.startTime = tag.getLong("StartTime");
+            this.endTime = tag.getLong("EndTime");
+            this.winner = Team.getTeamByName(tag.getString("Winner"));
 
             if (this.table != null) {
 
@@ -545,6 +567,13 @@ public class GameState {
         tag.setBoolean("HasStarted", this.hasStarted());
         tag.setBoolean("GroupTeams", this.shouldGroupTeams());
         tag.setBoolean("Blackout", this.blackout);
+        tag.setLong("StartTime", this.startTime);
+        tag.setLong("EndTime", this.endTime);
+        
+        if (this.winner != null) {
+        	
+        	tag.setString("Winner", this.winner.getTeamKey());
+        }
 
         if (this.getTable() != null && this.mode != null) {
 
