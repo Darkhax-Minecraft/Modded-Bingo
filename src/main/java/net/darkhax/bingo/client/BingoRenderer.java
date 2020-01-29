@@ -3,9 +3,11 @@ package net.darkhax.bingo.client;
 import org.lwjgl.opengl.GL11;
 
 import net.darkhax.bingo.api.BingoAPI;
+import net.darkhax.bingo.api.goal.Goal;
 import net.darkhax.bingo.api.team.Team;
 import net.darkhax.bingo.data.GameState;
 import net.darkhax.bookshelf.util.MathsUtils;
+import net.darkhax.bookshelf.util.StackUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Gui;
 import net.minecraft.client.renderer.BufferBuilder;
@@ -14,9 +16,13 @@ import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.client.renderer.RenderItem;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
+import net.minecraft.client.resources.I18n;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.StringUtils;
+import net.minecraft.util.text.TextFormatting;
+import net.minecraftforge.event.entity.player.ItemTooltipEvent;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
@@ -38,6 +44,26 @@ public class BingoRenderer {
         long m = (seconds / 60) % 60;
         long h = (seconds / (60 * 60)) % 24;
         return String.format("%d:%02d:%02d", h,m,s);
+    }
+    
+    @SubscribeEvent
+    public static void onTooltip(ItemTooltipEvent event) {
+    	
+    	if (BingoAPI.GAME_STATE != null) {
+    		
+            for (int x = 0; x < 5; x++) {
+
+                for (int y = 0; y < 5; y++) {
+
+                	ItemStack goal = BingoAPI.GAME_STATE.getGoal(x, y);
+                	
+                	if (goal != null && !goal.isEmpty() && StackUtils.areStacksSimilar(goal, event.getItemStack())) {
+                		
+                		event.getToolTip().add(TextFormatting.YELLOW + I18n.format("tooltip.bingo.goalitem"));
+                	}
+                }
+            }
+    	}
     }
     
     @SubscribeEvent

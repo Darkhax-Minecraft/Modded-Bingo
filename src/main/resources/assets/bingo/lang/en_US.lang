@@ -22,3 +22,5 @@ command.bingo.info.alreadystarted=[Bingo] Another game has already started. You 
 command.bingo.stop.usage=/bingo stop
 command.bingo.stop.stopped=[Bingo] %s has ended the game.
 command.bingo.stop.nogame=[Bingo] There is no game to stop.
+
+tooltip.bingo.goalitem=Bingo Item
