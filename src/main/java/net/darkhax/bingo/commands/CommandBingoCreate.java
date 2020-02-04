@@ -70,4 +70,16 @@ public class CommandBingoCreate extends Command {
         
         return super.getTabCompletions(server, sender, args, targetPos);
     }
+    
+    @Override
+    public int getRequiredPermissionLevel () {
+
+        return 2;
+    }
+
+    @Override
+    public boolean checkPermission (MinecraftServer server, ICommandSender sender) {
+
+        return this.getRequiredPermissionLevel() <= 0 || super.checkPermission(server, sender);
+    }
 }

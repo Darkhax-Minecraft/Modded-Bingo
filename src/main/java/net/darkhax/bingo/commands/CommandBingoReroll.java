@@ -33,4 +33,16 @@ public class CommandBingoReroll extends Command {
         BingoAPI.GAME_STATE.rollGoals(BingoAPI.GAME_STATE.getRandom());
         ModdedBingo.NETWORK.sendToAll(new PacketSyncGameState(BingoAPI.GAME_STATE.write()));
     }
+    
+    @Override
+    public int getRequiredPermissionLevel () {
+
+        return 2;
+    }
+
+    @Override
+    public boolean checkPermission (MinecraftServer server, ICommandSender sender) {
+
+        return this.getRequiredPermissionLevel() <= 0 || super.checkPermission(server, sender);
+    }
 }

@@ -4,7 +4,6 @@ import java.util.List;
 
 import javax.annotation.Nullable;
 
-import net.darkhax.bingo.api.BingoAPI;
 import net.darkhax.bingo.api.team.Team;
 import net.darkhax.bingo.data.BingoPersistantData;
 import net.darkhax.bookshelf.command.Command;
@@ -28,13 +27,6 @@ public class CommandBingoTeam extends Command {
     public String getUsage (ICommandSender sender) {
 
         return "command.bingo.team.usage";
-    }
-
-    // [player]
-    @Override
-    public int getRequiredPermissionLevel () {
-
-        return 0;
     }
 
     @Override
@@ -66,5 +58,17 @@ public class CommandBingoTeam extends Command {
 
             throw new WrongUsageException("command.bingo.team.usage");
         }
+    }
+    
+    @Override
+    public int getRequiredPermissionLevel () {
+
+        return 0;
+    }
+
+    @Override
+    public boolean checkPermission (MinecraftServer server, ICommandSender sender) {
+
+        return this.getRequiredPermissionLevel() <= 0 || super.checkPermission(server, sender);
     }
 }

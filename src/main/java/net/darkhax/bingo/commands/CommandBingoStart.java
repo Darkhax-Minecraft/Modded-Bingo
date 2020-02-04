@@ -91,4 +91,16 @@ public class CommandBingoStart extends Command {
 
         return !world.isSideSolid(pos, EnumFacing.UP) && depth < 100 ? getRandomPosition(world, depth + 1) : pos.move(EnumFacing.UP);
     }
+    
+    @Override
+    public int getRequiredPermissionLevel () {
+
+        return 2;
+    }
+
+    @Override
+    public boolean checkPermission (MinecraftServer server, ICommandSender sender) {
+
+        return this.getRequiredPermissionLevel() <= 0 || super.checkPermission(server, sender);
+    }
 }
