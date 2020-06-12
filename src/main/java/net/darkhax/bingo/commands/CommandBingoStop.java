@@ -1,5 +1,5 @@
 package net.darkhax.bingo.commands;
-
+/*
 import net.darkhax.bingo.ModdedBingo;
 import net.darkhax.bingo.api.BingoAPI;
 import net.darkhax.bingo.network.PacketSyncGameState;
@@ -51,3 +51,4 @@ public class CommandBingoStop extends Command {
         return this.getRequiredPermissionLevel() <= 0 || super.checkPermission(server, sender);
     }
 }
+*/

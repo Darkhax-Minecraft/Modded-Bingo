@@ -7,9 +7,9 @@ import java.util.UUID;
 
 import net.darkhax.bingo.api.BingoAPI;
 import net.darkhax.bingo.api.team.Team;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.nbt.NBTTagList;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.nbt.ListNBT;
 import net.minecraftforge.common.util.Constants.NBT;
 
 /**
@@ -28,7 +28,7 @@ public class BingoPersistantData {
      * @param player The player to lookup.
      * @return The team the player is on.
      */
-    public static Team getTeam (EntityPlayer player) {
+    public static Team getTeam (PlayerEntity player) {
 
         return PLAYER_TEAMS.getOrDefault(player.getUniqueID(), BingoAPI.TEAM_RED);
     }
@@ -39,7 +39,7 @@ public class BingoPersistantData {
      * @param player The player to set the team for.
      * @param team The team they are now on.
      */
-    public static void setTeam (EntityPlayer player, Team team) {
+    public static void setTeam (PlayerEntity player, Team team) {
 
         PLAYER_TEAMS.put(player.getUniqueID(), team);
     }
@@ -49,22 +49,22 @@ public class BingoPersistantData {
      *
      * @return A tag compound containing all the data.
      */
-    public static NBTTagCompound write () {
+    public static CompoundNBT write () {
 
-        final NBTTagCompound saveData = new NBTTagCompound();
+        final CompoundNBT saveData = new CompoundNBT();
 
-        final NBTTagList list = new NBTTagList();
-        saveData.setTag("TeamData", list);
+        final ListNBT list = new ListNBT();
+        saveData.put("TeamData", list);
 
         for (final Entry<UUID, Team> entry : PLAYER_TEAMS.entrySet()) {
 
-            final NBTTagCompound entryTag = new NBTTagCompound();
-            entryTag.setUniqueId("PlayerUUID", entry.getKey());
-            entryTag.setString("Team", entry.getValue().getDyeColor().getTranslationKey());
-            list.appendTag(entryTag);
+            final CompoundNBT entryTag = new CompoundNBT();
+            entryTag.putUniqueId("PlayerUUID", entry.getKey());
+            entryTag.putString("Team", entry.getValue().getDyeColor().getTranslationKey());
+            list.add(entryTag);
         }
 
-        saveData.setTag("GameState", BingoAPI.GAME_STATE.write());
+        saveData.put("GameState", BingoAPI.GAME_STATE.write());
         return saveData;
     }
 
@@ -73,15 +73,15 @@ public class BingoPersistantData {
      *
      * @param tag The tag to read from.
      */
-    public static void read (NBTTagCompound tag) {
+    public static void read (CompoundNBT tag) {
 
         PLAYER_TEAMS.clear();
 
-        final NBTTagList playersData = tag.getTagList("TeamData", NBT.TAG_COMPOUND);
+        final ListNBT playersData = tag.getList("TeamData", NBT.TAG_COMPOUND);
 
-        for (int i = 0; i < playersData.tagCount(); i++) {
+        for (int i = 0; i < playersData.size(); i++) {
 
-            final NBTTagCompound playerData = playersData.getCompoundTagAt(i);
+            final CompoundNBT playerData = playersData.getCompound(i);
             final Team team = Team.getTeamByName(playerData.getString("Team"));
 
             if (team != null) {
@@ -90,6 +90,6 @@ public class BingoPersistantData {
             }
         }
 
-        BingoAPI.GAME_STATE.read(tag.getCompoundTag("GameState"));
+        BingoAPI.GAME_STATE.read(tag.getCompound("GameState"));
     }
 }

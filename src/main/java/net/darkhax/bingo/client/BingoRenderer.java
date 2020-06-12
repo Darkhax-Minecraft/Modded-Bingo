@@ -6,30 +6,25 @@ import net.darkhax.bingo.api.BingoAPI;
 import net.darkhax.bingo.api.goal.Goal;
 import net.darkhax.bingo.api.team.Team;
 import net.darkhax.bingo.data.GameState;
-import net.darkhax.bookshelf.util.MathsUtils;
-import net.darkhax.bookshelf.util.StackUtils;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.Gui;
 import net.minecraft.client.renderer.BufferBuilder;
-import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.RenderHelper;
-import net.minecraft.client.renderer.RenderItem;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.StringUtils;
+import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.util.text.TextFormatting;
+import net.minecraftforge.event.TickEvent;
+import net.minecraftforge.event.TickEvent.Phase;
 import net.minecraftforge.event.entity.player.ItemTooltipEvent;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
-import net.minecraftforge.fml.common.gameevent.TickEvent;
-import net.minecraftforge.fml.common.gameevent.TickEvent.Phase;
-import net.minecraftforge.fml.relauncher.Side;
+import net.minecraftforge.api.distmarker.Dist;
 
-@EventBusSubscriber(value = Side.CLIENT, modid = "bingo")
+@EventBusSubscriber(value = Dist.CLIENT, modid = "bingo")
 public class BingoRenderer {
 
     /**
@@ -56,10 +51,9 @@ public class BingoRenderer {
                 for (int y = 0; y < 5; y++) {
 
                 	ItemStack goal = BingoAPI.GAME_STATE.getGoal(x, y);
-                	
-                	if (goal != null && !goal.isEmpty() && StackUtils.areStacksSimilar(goal, event.getItemStack())) {
+                	if (goal != null && !goal.isEmpty() && ItemStack.areItemsEqual(goal, event.getItemStack())) {
                 		
-                		event.getToolTip().add(TextFormatting.YELLOW + I18n.format("tooltip.bingo.goalitem"));
+                		event.getToolTip().add(new StringTextComponent(TextFormatting.YELLOW + I18n.format("tooltip.bingo.goalitem")));
                 	}
                 }
             }
@@ -68,10 +62,10 @@ public class BingoRenderer {
     
     @SubscribeEvent
     public static void render (TickEvent.RenderTickEvent event) {
-
+    	/*
     	GameState bingo = BingoAPI.GAME_STATE;
     	
-        final Minecraft mc = Minecraft.getMinecraft();
+        final Minecraft mc = Minecraft.getInstance();
         
         // Prevent shwoing the game board while crafting, in a gui, on the debug screen, or in
         // the player tab list.
@@ -79,11 +73,11 @@ public class BingoRenderer {
 
             if (bingo.isActive() && bingo.getStartTime() > 0 && mc.world != null) {
 
-            	long endTime = bingo.getEndTime() >= bingo.getStartTime() ? bingo.getEndTime() : mc.world.getTotalWorldTime();
-                mc.fontRenderer.drawString("Time: " + StringUtils.ticksToElapsedTime((int) (endTime - bingo.getStartTime())), 14, 2, 0xffffff, false);
+            	long endTime = bingo.getEndTime() >= bingo.getStartTime() ? bingo.getEndTime() : mc.world.getGameTime();
+                mc.fontRenderer.drawString("Time: " + StringUtils.ticksToElapsedTime((int) (endTime - bingo.getStartTime())), 14, 2, 0xffffff);
             }
             
-            final RenderItem itemRender = Minecraft.getMinecraft().getRenderItem();
+            final RenderItem itemRender = mc.getItemRenderer();
 
             GlStateManager.pushMatrix();
 
@@ -152,5 +146,6 @@ public class BingoRenderer {
 
             GlStateManager.popMatrix();
         }
+        */
     }
 }

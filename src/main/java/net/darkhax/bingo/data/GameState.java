@@ -18,12 +18,11 @@ import net.darkhax.bingo.api.goal.Goal;
 import net.darkhax.bingo.api.goal.GoalTable;
 import net.darkhax.bingo.api.team.Team;
 import net.darkhax.bingo.network.PacketSyncGoal;
-import net.darkhax.bookshelf.util.StackUtils;
-import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.nbt.NBTTagList;
-import net.minecraft.nbt.NBTTagString;
+import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.nbt.ListNBT;
+import net.minecraft.nbt.StringNBT;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.common.util.Constants.NBT;
@@ -168,7 +167,7 @@ public class GameState {
      * @param x The x pos of the goal.
      * @param y The y pos of the goal.
      */
-    public void setGoalComplete (@Nonnull EntityPlayerMP player, ItemStack item, int x, int y) {
+    public void setGoalComplete (@Nonnull ServerPlayerEntity player, ItemStack item, int x, int y) {
 
         final Team playerTeam = BingoPersistantData.getTeam(player);
 
@@ -181,10 +180,10 @@ public class GameState {
                 effect.onItemCollected(player, item, playerTeam);
             }
 
-            ModdedBingo.NETWORK.sendToAll(new PacketSyncGoal(x, y, playerTeam.getTeamKey()));
+            ModdedBingo.NETWORK.sendToAllPlayers(new PacketSyncGoal(x, y, playerTeam.getTeamKey()));
         }
 
-        this.updateWinState(player.server, player.world.getTotalWorldTime());
+        this.updateWinState(player.server, player.world.getGameTime());
     }
 
     /**
@@ -330,7 +329,7 @@ public class GameState {
      * @param player The player to check for.
      * @param stack The item they acquired.
      */
-    public void onPlayerPickupItem (EntityPlayerMP player, ItemStack stack) {
+    public void onPlayerPickupItem (ServerPlayerEntity player, ItemStack stack) {
 
         if (BingoAPI.GAME_STATE.hasStarted()) {
 
@@ -339,8 +338,7 @@ public class GameState {
                 for (int y = 0; y < 5; y++) {
 
                     final ItemStack goal = this.getGoal(x, y);
-
-                    if (StackUtils.areStacksSimilar(goal, stack)) {
+                    if (ItemStack.areItemsEqual(goal, stack)) {
 
                         this.setGoalComplete(player, stack, x, y);
                     }
@@ -493,7 +491,7 @@ public class GameState {
      *
      * @param tag The tag to read the game state from.
      */
-    public void read (NBTTagCompound tag) {
+    public void read (CompoundNBT tag) {
 
         this.isActive = false;
         this.hasStarted = false;
@@ -524,29 +522,29 @@ public class GameState {
             if (this.table != null) {
 
                 // Read the goal items
-                final NBTTagList goalsTag = tag.getTagList("Goals", NBT.TAG_COMPOUND);
+                final ListNBT goalsTag = tag.getList("Goals", NBT.TAG_COMPOUND);
 
-                for (int i = 0; i < goalsTag.tagCount(); i++) {
+                for (int i = 0; i < goalsTag.size(); i++) {
 
-                    final NBTTagCompound goalTag = goalsTag.getCompoundTagAt(i);
-                    this.setGoal(goalTag.getInteger("X"), goalTag.getInteger("Y"), new ItemStack(goalTag.getCompoundTag("ItemStack")));
+                    final CompoundNBT goalTag = goalsTag.getCompound(i);
+                    this.setGoal(goalTag.getInt("X"), goalTag.getInt("Y"), ItemStack.read(goalTag.getCompound("ItemStack")));
                 }
 
                 // Read the completion states
-                final NBTTagList completionTags = tag.getTagList("Completion", NBT.TAG_COMPOUND);
+                final ListNBT completionTags = tag.getList("Completion", NBT.TAG_COMPOUND);
 
-                for (int i = 0; i < completionTags.tagCount(); i++) {
+                for (int i = 0; i < completionTags.size(); i++) {
 
-                    final NBTTagCompound completionTag = completionTags.getCompoundTagAt(i);
+                    final CompoundNBT completionTag = completionTags.getCompound(i);
 
-                    final int x = completionTag.getInteger("X");
-                    final int y = completionTag.getInteger("Y");
+                    final int x = completionTag.getInt("X");
+                    final int y = completionTag.getInt("Y");
 
-                    final NBTTagList teamsTag = completionTag.getTagList("Teams", NBT.TAG_STRING);
+                    final ListNBT teamsTag = completionTag.getList("Teams", NBT.TAG_STRING);
 
-                    for (int j = 0; j < teamsTag.tagCount(); j++) {
+                    for (int j = 0; j < teamsTag.size(); j++) {
 
-                        final Team team = Team.getTeamByName(teamsTag.getStringTagAt(j));
+                        final Team team = Team.getTeamByName(teamsTag.getString(j));
                         this.completionStates[x][y][team.getTeamCorner()] = team;
                     }
                 }
@@ -559,68 +557,67 @@ public class GameState {
      *
      * @return The tag that contains the state data.
      */
-    public NBTTagCompound write () {
+    public CompoundNBT write () {
 
-        final NBTTagCompound tag = new NBTTagCompound();
+        final CompoundNBT tag = new CompoundNBT();
 
-        tag.setBoolean("IsActive", this.isActive());
-        tag.setBoolean("HasStarted", this.hasStarted());
-        tag.setBoolean("GroupTeams", this.shouldGroupTeams());
-        tag.setBoolean("Blackout", this.blackout);
-        tag.setLong("StartTime", this.startTime);
-        tag.setLong("EndTime", this.endTime);
+        tag.putBoolean("IsActive", this.isActive());
+        tag.putBoolean("HasStarted", this.hasStarted());
+        tag.putBoolean("GroupTeams", this.shouldGroupTeams());
+        tag.putBoolean("Blackout", this.blackout);
+        tag.putLong("StartTime", this.startTime);
+        tag.putLong("EndTime", this.endTime);
         
         if (this.winner != null) {
         	
-        	tag.setString("Winner", this.winner.getTeamKey());
+        	tag.putString("Winner", this.winner.getTeamKey());
         }
 
         if (this.getTable() != null && this.mode != null) {
 
             // Write basic game data
-            tag.setString("GameMode", this.mode.getModeId().toString());
-            tag.setString("GoalTable", this.getTable().getName().toString());
+            tag.putString("GameMode", this.mode.getModeId().toString());
+            tag.putString("GoalTable", this.getTable().getName().toString());
 
             // Write the goal items
-            final NBTTagList goalTags = new NBTTagList();
-            tag.setTag("Goals", goalTags);
+            final ListNBT goalTags = new ListNBT();
+            tag.put("Goals", goalTags);
 
             for (int x = 0; x < 5; x++) {
 
                 for (int y = 0; y < 5; y++) {
 
                     final ItemStack goal = this.goals[x][y];
-                    final NBTTagCompound goalTag = new NBTTagCompound();
-                    goalTag.setInteger("X", x);
-                    goalTag.setInteger("Y", y);
-                    goalTag.setTag("ItemStack", goal.writeToNBT(new NBTTagCompound()));
-                    goalTags.appendTag(goalTag);
+                    final CompoundNBT goalTag = new CompoundNBT();
+                    goalTag.putInt("X", x);
+                    goalTag.putInt("Y", y);
+                    goalTag.put("ItemStack", goal.serializeNBT());
+                    goalTags.add(goalTag);
                 }
             }
 
             // Write the completion states
-            final NBTTagList completionTag = new NBTTagList();
-            tag.setTag("Completion", completionTag);
+            final ListNBT completionTag = new ListNBT();
+            tag.put("Completion", completionTag);
 
             for (int x = 0; x < 5; x++) {
 
                 for (int y = 0; y < 5; y++) {
 
-                    final NBTTagCompound teamCompletionTag = new NBTTagCompound();
-                    teamCompletionTag.setInteger("X", x);
-                    teamCompletionTag.setInteger("Y", y);
+                    final CompoundNBT teamCompletionTag = new CompoundNBT();
+                    teamCompletionTag.putInt("X", x);
+                    teamCompletionTag.putInt("Y", y);
 
-                    final NBTTagList teamsTag = new NBTTagList();
-                    teamCompletionTag.setTag("Teams", teamsTag);
+                    final ListNBT teamsTag = new ListNBT();
+                    teamCompletionTag.put("Teams", teamsTag);
                     for (final Team completedTeam : this.completionStates[x][y]) {
 
                         if (completedTeam != null) {
-
-                            teamsTag.appendTag(new NBTTagString(completedTeam.getTeamKey()));
+                            teamsTag.add(StringNBT.valueOf(completedTeam.getTeamKey()));
                         }
                     }
 
-                    completionTag.appendTag(teamCompletionTag);
+                    completionTag.add(teamCompletionTag);
                 }
             }
         }

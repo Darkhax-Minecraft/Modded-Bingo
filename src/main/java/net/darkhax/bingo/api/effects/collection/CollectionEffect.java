@@ -1,7 +1,7 @@
 package net.darkhax.bingo.api.effects.collection;
 
 import net.darkhax.bingo.api.team.Team;
-import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.item.ItemStack;
 
 /**
@@ -17,5 +17,5 @@ public abstract class CollectionEffect {
      * @param item The item that the player picked up.
      * @param team The team that the player is on.
      */
-    public abstract void onItemCollected (EntityPlayerMP player, ItemStack item, Team team);
+    public abstract void onItemCollected (ServerPlayerEntity player, ItemStack item, Team team);
 }

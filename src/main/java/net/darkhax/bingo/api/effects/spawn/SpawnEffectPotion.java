@@ -2,9 +2,9 @@ package net.darkhax.bingo.api.effects.spawn;
 
 import com.google.gson.annotations.Expose;
 
-import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraft.potion.Potion;
-import net.minecraft.potion.PotionEffect;
+import net.minecraft.entity.player.ServerPlayerEntity;
+import net.minecraft.potion.Effect;
+import net.minecraft.potion.EffectInstance;
 import net.minecraft.util.math.BlockPos;
 
 /**
@@ -16,7 +16,7 @@ public class SpawnEffectPotion extends SpawnEffect {
      * The potion effect to apply.
      */
     @Expose
-    private Potion effect;
+    private Effect effect;
 
     /**
      * The duration in ticks.
@@ -31,8 +31,7 @@ public class SpawnEffectPotion extends SpawnEffect {
     private int amplifier;
 
     @Override
-    public void onPlayerSpawn (EntityPlayerMP player, BlockPos pos) {
-
-        player.addPotionEffect(new PotionEffect(this.effect, this.duration, this.amplifier));
+    public void onPlayerSpawn (ServerPlayerEntity player, BlockPos pos) {
+        player.addPotionEffect(new EffectInstance(this.effect, this.duration, this.amplifier));
     }
 }

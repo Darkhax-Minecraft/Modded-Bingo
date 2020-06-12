@@ -1,5 +1,5 @@
 package net.darkhax.bingo.commands;
-
+/*
 import java.util.List;
 import java.util.Random;
 
@@ -83,3 +83,4 @@ public class CommandBingoCreate extends Command {
         return this.getRequiredPermissionLevel() <= 0 || super.checkPermission(server, sender);
     }
 }
+*/

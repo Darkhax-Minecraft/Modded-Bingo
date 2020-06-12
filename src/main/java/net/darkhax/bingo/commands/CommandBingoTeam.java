@@ -1,5 +1,5 @@
 package net.darkhax.bingo.commands;
-
+/*
 import java.util.List;
 
 import javax.annotation.Nullable;
@@ -72,3 +72,4 @@ public class CommandBingoTeam extends Command {
         return this.getRequiredPermissionLevel() <= 0 || super.checkPermission(server, sender);
     }
 }
+*/

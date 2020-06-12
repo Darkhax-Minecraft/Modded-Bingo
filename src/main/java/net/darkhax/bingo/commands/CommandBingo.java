@@ -1,5 +1,5 @@
 package net.darkhax.bingo.commands;
-
+/*
 import net.minecraft.command.ICommandSender;
 import net.minecraft.server.MinecraftServer;
 import net.minecraftforge.server.command.CommandTreeBase;
@@ -41,3 +41,4 @@ public class CommandBingo extends CommandTreeBase {
         return this.getRequiredPermissionLevel() <= 0 || super.checkPermission(server, sender);
     }
 }
+*/

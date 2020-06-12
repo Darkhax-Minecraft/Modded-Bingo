@@ -30,26 +30,18 @@ import net.darkhax.bingo.api.goal.GoalTable;
 import net.darkhax.bingo.api.team.Team;
 import net.darkhax.bingo.data.BingoEffectTypeAdapter;
 import net.darkhax.bingo.data.GameState;
-import net.darkhax.bookshelf.adapters.ItemStackAdapter;
-import net.darkhax.bookshelf.adapters.RegistryEntryAdapter;
-import net.darkhax.bookshelf.adapters.ResourceLocationTypeAdapter;
-import net.darkhax.bookshelf.dataloader.DataLoader;
-import net.darkhax.bookshelf.dataloader.sources.DataProviderAddons;
-import net.darkhax.bookshelf.dataloader.sources.DataProviderConfigs;
-import net.darkhax.bookshelf.dataloader.sources.DataProviderModsOverridable;
 import net.minecraft.block.Block;
 import net.minecraft.enchantment.Enchantment;
-import net.minecraft.item.EnumDyeColor;
+import net.minecraft.entity.EntityType;
+import net.minecraft.item.DyeColor;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.potion.Potion;
-import net.minecraft.potion.PotionType;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.SoundEvent;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraft.world.biome.Biome;
-import net.minecraftforge.fml.common.registry.EntityEntry;
-import net.minecraftforge.fml.common.registry.ForgeRegistries;
+import net.minecraftforge.registries.ForgeRegistries;
 
 /**
  * This is the central API class for interacting with the bingo mod. If you are coding custom
@@ -66,22 +58,22 @@ public class BingoAPI {
     /**
      * A constant reference to the red team.
      */
-    public static final Team TEAM_RED = new Team(TextFormatting.RED, 0, EnumDyeColor.RED);
+    public static final Team TEAM_RED = new Team(TextFormatting.RED, 0, DyeColor.RED);
 
     /**
      * A constant reference to the yellow team.
      */
-    public static final Team TEAM_YELLOW = new Team(TextFormatting.YELLOW, 1, EnumDyeColor.YELLOW);
+    public static final Team TEAM_YELLOW = new Team(TextFormatting.YELLOW, 1, DyeColor.YELLOW);
 
     /**
      * A constant reference to the green team.
      */
-    public static final Team TEAM_GREEN = new Team(TextFormatting.GREEN, 2, EnumDyeColor.GREEN);
+    public static final Team TEAM_GREEN = new Team(TextFormatting.GREEN, 2, DyeColor.GREEN);
 
     /**
      * A constant reference to the blue team.
      */
-    public static final Team TEAM_BLUE = new Team(TextFormatting.BLUE, 3, EnumDyeColor.BLUE);
+    public static final Team TEAM_BLUE = new Team(TextFormatting.BLUE, 3, DyeColor.BLUE);
 
     /**
      * An array of all the teams.
@@ -235,6 +227,8 @@ public class BingoAPI {
         gameModes.clear();
         goalTables.clear();
 
+        //TODO: implement
+        /*
         final DataLoader loader = new DataLoader(ModdedBingo.LOG);
 
         loader.addDataProvider(new DataProviderModsOverridable(ModdedBingo.MOD_ID));
@@ -245,6 +239,7 @@ public class BingoAPI {
         loader.addProcessor("gamemode", BingoAPI::processGameModes);
 
         loader.loadData();
+        */
     }
 
     /**
@@ -313,17 +308,19 @@ public class BingoAPI {
         builder.registerTypeAdapter(StartingEffect.class, startingEffectAdapter);
 
         // Vanilla Class adapters
+        //TODO: implement
+        /*
         builder.registerTypeAdapter(ItemStack.class, new ItemStackAdapter());
         builder.registerTypeAdapter(Block.class, new RegistryEntryAdapter<>(ForgeRegistries.BLOCKS));
         builder.registerTypeAdapter(Item.class, new RegistryEntryAdapter<>(ForgeRegistries.ITEMS));
         builder.registerTypeAdapter(Potion.class, new RegistryEntryAdapter<>(ForgeRegistries.POTIONS));
         builder.registerTypeAdapter(Biome.class, new RegistryEntryAdapter<>(ForgeRegistries.BIOMES));
         builder.registerTypeAdapter(SoundEvent.class, new RegistryEntryAdapter<>(ForgeRegistries.SOUND_EVENTS));
-        builder.registerTypeAdapter(PotionType.class, new RegistryEntryAdapter<>(ForgeRegistries.POTION_TYPES));
+        builder.registerTypeAdapter(Potion.class, new RegistryEntryAdapter<>(ForgeRegistries.POTION_TYPES));
         builder.registerTypeAdapter(Enchantment.class, new RegistryEntryAdapter<>(ForgeRegistries.ENCHANTMENTS));
-        builder.registerTypeAdapter(EntityEntry.class, new RegistryEntryAdapter<>(ForgeRegistries.ENTITIES));
+        builder.registerTypeAdapter(EntityType.class, new RegistryEntryAdapter<>(ForgeRegistries.ENTITIES));
         builder.registerTypeAdapter(ResourceLocation.class, new ResourceLocationTypeAdapter());
-
+		*/
         return builder.create();
     }
 

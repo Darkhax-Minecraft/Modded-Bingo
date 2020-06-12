@@ -1,6 +1,6 @@
 package net.darkhax.bingo.api.effects.spawn;
 
-import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.util.math.BlockPos;
 
 /**
@@ -15,5 +15,5 @@ public abstract class SpawnEffect {
      * @param player The player that is spawning.
      * @param pos The randomized position for the player to spawn at.
      */
-    public abstract void onPlayerSpawn (EntityPlayerMP player, BlockPos pos);
+    public abstract void onPlayerSpawn (ServerPlayerEntity player, BlockPos pos);
 }
