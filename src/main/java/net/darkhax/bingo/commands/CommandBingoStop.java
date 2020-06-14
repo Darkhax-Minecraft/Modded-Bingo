@@ -1,54 +1,30 @@
 package net.darkhax.bingo.commands;
-/*
+
+import com.mojang.brigadier.builder.LiteralArgumentBuilder;
+import com.mojang.brigadier.exceptions.SimpleCommandExceptionType;
+
 import net.darkhax.bingo.ModdedBingo;
 import net.darkhax.bingo.api.BingoAPI;
 import net.darkhax.bingo.network.PacketSyncGameState;
-import net.darkhax.bookshelf.command.Command;
-import net.minecraft.command.CommandException;
-import net.minecraft.command.ICommandSender;
-import net.minecraft.server.MinecraftServer;
-import net.minecraft.util.text.TextComponentTranslation;
+import net.minecraft.command.CommandSource;
+import net.minecraft.command.Commands;
+import net.minecraft.entity.player.ServerPlayerEntity;
+import net.minecraft.util.text.TranslationTextComponent;
 
-public class CommandBingoStop extends Command {
+public class CommandBingoStop {
 
-    @Override
-    public String getName () {
-
-        return "stop";
-    }
-
-    @Override
-    public String getUsage (ICommandSender sender) {
-
-        return "command.bingo.stop.usage";
-    }
-
-    @Override
-    public void execute (MinecraftServer server, ICommandSender sender, String[] args) throws CommandException {
-
-        if (BingoAPI.GAME_STATE.isActive()) {
-            
-            BingoAPI.GAME_STATE.end();
-            server.getPlayerList().sendMessage(new TextComponentTranslation("command.bingo.stop.stopped", sender.getDisplayName()));
-            ModdedBingo.NETWORK.sendToAll(new PacketSyncGameState(BingoAPI.GAME_STATE.write()));
-        }
-        
-        else {
-            
-            throw new CommandException("command.bingo.stop.nogame");
-        }
-    }
+	public static LiteralArgumentBuilder<CommandSource> register() {
+		return Commands.literal("stop").requires(sender ->sender.hasPermissionLevel(2))
+				.executes(ctx -> {
+					if(!BingoAPI.GAME_STATE.isActive()) {
+						throw new SimpleCommandExceptionType(new TranslationTextComponent("command.bingo.stop.nogame")).create();
+					}
+					BingoAPI.GAME_STATE.end();
+					ServerPlayerEntity sender = ctx.getSource().asPlayer();
+					sender.getServer().getPlayerList().sendMessage(new TranslationTextComponent("command.bingo.stop.stopped", sender.getDisplayName()));
+					ModdedBingo.NETWORK.sendToAllPlayers(new PacketSyncGameState());
+					return 1;
+				});
+	}
     
-    @Override
-    public int getRequiredPermissionLevel () {
-
-        return 2;
-    }
-
-    @Override
-    public boolean checkPermission (MinecraftServer server, ICommandSender sender) {
-
-        return this.getRequiredPermissionLevel() <= 0 || super.checkPermission(server, sender);
-    }
 }
-*/

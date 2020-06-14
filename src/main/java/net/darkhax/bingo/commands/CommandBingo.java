@@ -13,6 +13,8 @@ public class CommandBingo {
 	            .then(CommandBingoCreate.register())
 	            .then(CommandBingoTeam.register())
 	            .then(CommandBingoReroll.register())
+	            .then(CommandBingoStart.register())
+	            .then(CommandBingoStop.register())
 	        );
 	}
    
