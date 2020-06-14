@@ -20,7 +20,7 @@ public class CommandBingoTeam {
 			builder.then(Commands.literal(team)
 				.executes(ctx -> {
 					execute(ctx.getSource().asPlayer(), team);
-					return 0;
+					return 1;
 				}));
 		}
 		

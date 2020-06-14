@@ -12,6 +12,7 @@ public class CommandBingo {
 	            LiteralArgumentBuilder.<CommandSource>literal("bingo")
 	            .then(CommandBingoCreate.register())
 	            .then(CommandBingoTeam.register())
+	            .then(CommandBingoReroll.register())
 	        );
 	}
    

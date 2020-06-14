@@ -375,7 +375,7 @@ public class GameState {
             generatedGoals.add(goal);
         }
 
-        Collections.shuffle(generatedGoals, this.random);
+        Collections.shuffle(generatedGoals, rand);
 
         int xOff = 0;
         int yOff = 0;

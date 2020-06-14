@@ -1,49 +1,29 @@
 package net.darkhax.bingo.commands;
-/*
+
+import java.util.Random;
+
+import com.mojang.brigadier.builder.LiteralArgumentBuilder;
+import com.mojang.brigadier.exceptions.SimpleCommandExceptionType;
+
 import net.darkhax.bingo.ModdedBingo;
 import net.darkhax.bingo.api.BingoAPI;
 import net.darkhax.bingo.network.PacketSyncGameState;
-import net.darkhax.bookshelf.command.Command;
-import net.minecraft.command.CommandException;
-import net.minecraft.command.ICommandSender;
-import net.minecraft.server.MinecraftServer;
+import net.minecraft.command.CommandSource;
+import net.minecraft.command.Commands;
+import net.minecraft.util.text.TranslationTextComponent;
 
-public class CommandBingoReroll extends Command {
+public class CommandBingoReroll {
 
-    @Override
-    public String getName () {
-
-        return "reroll";
-    }
-
-    @Override
-    public String getUsage (ICommandSender sender) {
-
-        return "command.bingo.reroll.usage";
-    }
-
-    @Override
-    public void execute (MinecraftServer server, ICommandSender sender, String[] args) throws CommandException {
-
-        if (!BingoAPI.GAME_STATE.isActive()) {
-
-            throw new CommandException("command.bingo.info.notactive");
-        }
-
-        BingoAPI.GAME_STATE.rollGoals(BingoAPI.GAME_STATE.getRandom());
-        ModdedBingo.NETWORK.sendToAll(new PacketSyncGameState(BingoAPI.GAME_STATE.write()));
-    }
-    
-    @Override
-    public int getRequiredPermissionLevel () {
-
-        return 2;
-    }
-
-    @Override
-    public boolean checkPermission (MinecraftServer server, ICommandSender sender) {
-
-        return this.getRequiredPermissionLevel() <= 0 || super.checkPermission(server, sender);
-    }
+	public static LiteralArgumentBuilder<CommandSource> register() {
+		return Commands.literal("reroll").requires(sender ->sender.hasPermissionLevel(2))
+				.executes(ctx -> {
+					if(!BingoAPI.GAME_STATE.isActive()) {
+						throw new SimpleCommandExceptionType(new TranslationTextComponent("command.bingo.info.notactive")).create();
+					}
+					Random rand = BingoAPI.GAME_STATE.getRandom(); //is null when loaded from disc
+					BingoAPI.GAME_STATE.rollGoals(rand == null ? new Random() : rand);
+					ModdedBingo.NETWORK.sendToAllPlayers(new PacketSyncGameState());
+					return 1;
+				});
+	}
 }
-*/
