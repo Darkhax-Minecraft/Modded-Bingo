@@ -2,150 +2,140 @@ package net.darkhax.bingo.client;
 
 import org.lwjgl.opengl.GL11;
 
+import com.mojang.blaze3d.platform.GlStateManager;
+import com.mojang.blaze3d.systems.RenderSystem;
+
+import net.darkhax.bingo.ModdedBingo;
 import net.darkhax.bingo.api.BingoAPI;
-import net.darkhax.bingo.api.goal.Goal;
 import net.darkhax.bingo.api.team.Team;
 import net.darkhax.bingo.data.GameState;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.BufferBuilder;
-import net.minecraft.client.renderer.RenderHelper;
+import net.minecraft.client.renderer.ItemRenderer;
 import net.minecraft.client.renderer.Tessellator;
+import net.minecraft.client.renderer.WorldVertexBufferUploader;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.StringUtils;
 import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.util.text.TextFormatting;
-import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.event.TickEvent.Phase;
 import net.minecraftforge.event.entity.player.ItemTooltipEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
 import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.client.event.RenderGameOverlayEvent;
 
 @EventBusSubscriber(value = Dist.CLIENT, modid = "bingo")
 public class BingoRenderer {
 
-    /**
-     * An array of UV coordinate offsets related to the team corners. This is used to render
-     * the highlight when a team has completed a goal.
-     */
-    private static final int[][] teamUVs = new int[][] { new int[] { 0, 0, 11, 11 }, new int[] { 11, 0, 11, 11 }, new int[] { 0, 11, 11, 11 }, new int[] { 11, 11, 11, 11 } };
-    
-    public static String getTimeDisplay(long seconds) {
-    	
-        long s = seconds % 60;
-        long m = (seconds / 60) % 60;
-        long h = (seconds / (60 * 60)) % 24;
-        return String.format("%d:%02d:%02d", h,m,s);
-    }
-    
-    @SubscribeEvent
-    public static void onTooltip(ItemTooltipEvent event) {
-    	
-    	if (BingoAPI.GAME_STATE != null) {
-    		
-            for (int x = 0; x < 5; x++) {
+	/**
+	 * An array of UV coordinate offsets related to the team corners. This is used
+	 * to render the highlight when a team has completed a goal.
+	 */
+	private static final int[][] teamUVs = new int[][] { new int[] { 0, 0, 11, 11 }, new int[] { 11, 0, 11, 11 }, new int[] { 0, 11, 11, 11 }, new int[] { 11, 11, 11, 11 } };
 
-                for (int y = 0; y < 5; y++) {
+	private static final ResourceLocation TEXTURE_LOC = new ResourceLocation(ModdedBingo.MOD_ID, "hud/bingo_board.png");
 
-                	ItemStack goal = BingoAPI.GAME_STATE.getGoal(x, y);
-                	if (goal != null && !goal.isEmpty() && ItemStack.areItemsEqual(goal, event.getItemStack())) {
-                		
-                		event.getToolTip().add(new StringTextComponent(TextFormatting.YELLOW + I18n.format("tooltip.bingo.goalitem")));
-                	}
-                }
-            }
-    	}
-    }
-    
-    @SubscribeEvent
-    public static void render (TickEvent.RenderTickEvent event) {
-    	/*
-    	GameState bingo = BingoAPI.GAME_STATE;
-    	
-        final Minecraft mc = Minecraft.getInstance();
-        
-        // Prevent shwoing the game board while crafting, in a gui, on the debug screen, or in
-        // the player tab list.
-        if (event.phase == Phase.END && BingoAPI.GAME_STATE.isActive() && Minecraft.isGuiEnabled() && mc.currentScreen == null && !mc.gameSettings.showDebugInfo && !(mc.gameSettings.keyBindPlayerList.isKeyDown() && !mc.isIntegratedServerRunning())) {
+	@SubscribeEvent
+	public static void onTooltip(ItemTooltipEvent event) {
 
-            if (bingo.isActive() && bingo.getStartTime() > 0 && mc.world != null) {
+		if(BingoAPI.GAME_STATE != null) {
 
-            	long endTime = bingo.getEndTime() >= bingo.getStartTime() ? bingo.getEndTime() : mc.world.getGameTime();
-                mc.fontRenderer.drawString("Time: " + StringUtils.ticksToElapsedTime((int) (endTime - bingo.getStartTime())), 14, 2, 0xffffff);
-            }
-            
-            final RenderItem itemRender = mc.getItemRenderer();
+			for(int x = 0; x < 5; x++) {
 
-            GlStateManager.pushMatrix();
+				for(int y = 0; y < 5; y++) {
 
-            // Reset the color, to prevent prior render code from changing the board's color.
-            GlStateManager.color(1f, 1f, 1f, 1f);
+					ItemStack goal = BingoAPI.GAME_STATE.getGoal(x, y);
+					if(goal != null && !goal.isEmpty() && ItemStack.areItemsEqual(goal, event.getItemStack())) {
 
-            // Render the background image for the bingo board
-            mc.renderEngine.bindTexture(new ResourceLocation("bingo", "hud/bingo_board.png"));
-            final float texSize = 256f;
-            Gui.drawModalRectWithCustomSizedTexture(10, 10, 0, 0, 132, 132, texSize, texSize);
+						event.getToolTip().add(new StringTextComponent(TextFormatting.YELLOW + I18n.format("tooltip.bingo.goalitem")));
+					}
+				}
+			}
+		}
+	}
 
-            // Render all the claim markers to the GUI. This is done as a single buffer to
-            // maximize performance. (Can be up to 100X more efficient)
-            final BufferBuilder buffBuilder = Tessellator.getInstance().getBuffer();
-            buffBuilder.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_TEX_COLOR);
+	@SubscribeEvent
+	public static void render(RenderGameOverlayEvent.Post event) {
+		if(event.getType() != RenderGameOverlayEvent.ElementType.ALL)
+			return;
 
-            for (int x = 0; x < 5; x++) {
+		GameState bingo = BingoAPI.GAME_STATE;
+		final Minecraft mc = Minecraft.getInstance();
 
-                for (int y = 0; y < 5; y++) {
+		if(!bingo.isActive() || !Minecraft.isGuiEnabled() || mc.currentScreen != null || mc.gameSettings.showDebugInfo) {
+			return;
+		}
 
-                    final Team[] completedTeams = BingoAPI.GAME_STATE.getCompletionStats(x, y);
+		if(bingo.getStartTime() > 0 && mc.world != null) {
+			long endTime = bingo.getEndTime() >= bingo.getStartTime() ? bingo.getEndTime() : mc.world.getGameTime();
+			mc.fontRenderer.drawString("Time: " + StringUtils.ticksToElapsedTime((int) (endTime - bingo.getStartTime())), 14, 2, 0xffffff);
+		}
 
-                    for (final Team team : completedTeams) {
+		RenderSystem.pushMatrix();
+		RenderSystem.color3f(1f, 1f, 1f);
 
-                        if (team != null) {
+		mc.getTextureManager().bindTexture(TEXTURE_LOC);
+		renderGUI(10, 142, 10, 142, 0, 0, 132f / 256f, 0, 132f / 256f);
 
-                            final int[] uvs = teamUVs[team.getTeamCorner()];
-                            final float[] color = team.getDyeColor().getColorComponentValues();
+		final ItemRenderer itemRender = mc.getItemRenderer();
 
-                            final int xOffset = 13 + x * 24 + uvs[0];
-                            final int yOffset = 13 + y * 24 + uvs[1];
-                            final float minU = (132 + uvs[0]) / texSize;
-                            final float maxU = (132 + uvs[0] + uvs[2]) / texSize;
-                            final float minV = uvs[1] / texSize;
-                            final float maxV = (uvs[1] + uvs[3]) / texSize;
+		for(int x = 0; x < 5; x++) {
+			for(int y = 0; y < 5; y++) {
 
-                            buffBuilder.pos(xOffset, yOffset + uvs[3], 0).tex(minU, maxV).color(color[0], color[1], color[2], 1f).endVertex();
-                            buffBuilder.pos(xOffset + uvs[2], yOffset + uvs[3], 0).tex(maxU, maxV).color(color[0], color[1], color[2], 1f).endVertex();
-                            buffBuilder.pos(xOffset + uvs[2], yOffset, 0).tex(maxU, minV).color(color[0], color[1], color[2], 1f).endVertex();
-                            buffBuilder.pos(xOffset, yOffset, 0).tex(minU, minV).color(color[0], color[1], color[2], 1f).endVertex();
-                        }
-                    }
-                }
-            }
+				final ItemStack goal = BingoAPI.GAME_STATE.getGoal(x, y);
 
-            Tessellator.getInstance().draw();
-            GlStateManager.enableLighting();
+				if(goal != null) {
+					itemRender.renderItemAndEffectIntoGUI(null, goal, 16 + x * 24, 16 + y * 24);
+				}
+			}
+		}
 
-            // Render items on the bingo board.
-            RenderHelper.enableGUIStandardItemLighting();
+		RenderSystem.popMatrix();
+	}
 
-            for (int x = 0; x < 5; x++) {
+	@SuppressWarnings("deprecation")
+	private static void renderGUI(int x0, int x1, int y0, int y1, int z, float u0, float u1, float v0, float v1) {
+		BufferBuilder bufferbuilder = Tessellator.getInstance().getBuffer();
+		bufferbuilder.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_TEX);
+		bufferbuilder.pos((double) x0, (double) y1, (double) z).tex(u0, v1).endVertex();
+		bufferbuilder.pos((double) x1, (double) y1, (double) z).tex(u1, v1).endVertex();
+		bufferbuilder.pos((double) x1, (double) y0, (double) z).tex(u1, v0).endVertex();
+		bufferbuilder.pos((double) x0, (double) y0, (double) z).tex(u0, v0).endVertex();
+		bufferbuilder.finishDrawing();
+		WorldVertexBufferUploader.draw(bufferbuilder);
 
-                for (int y = 0; y < 5; y++) {
+		bufferbuilder.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_TEX_COLOR);
+		final float texSize = 256f;
 
-                    final ItemStack goal = BingoAPI.GAME_STATE.getGoal(x, y);
+		for(int x = 0; x < 5; x++) {
+			for(int y = 0; y < 5; y++) {
 
-                    if (goal != null) {
+				final Team[] completedTeams = BingoAPI.GAME_STATE.getCompletionStats(x, y);
+				for(final Team team : completedTeams) {
 
-                        itemRender.renderItemAndEffectIntoGUI(null, goal, 16 + x * 24, 16 + y * 24);
-                    }
-                }
-            }
+					if(team != null) {
+						final int[] uvs = teamUVs[team.getTeamCorner()];
+						final float[] color = team.getDyeColor().getColorComponentValues();
 
-            RenderHelper.disableStandardItemLighting();
+						final int xOffset = 13 + x * 24 + uvs[0];
+						final int yOffset = 13 + y * 24 + uvs[1];
+						final float minU = (132 + uvs[0]) / texSize;
+						final float maxU = (132 + uvs[0] + uvs[2]) / texSize;
+						final float minV = uvs[1] / texSize;
+						final float maxV = (uvs[1] + uvs[3]) / texSize;
 
-            GlStateManager.popMatrix();
-        }
-        */
-    }
+						bufferbuilder.pos(xOffset, yOffset + uvs[3], 0).tex(minU, maxV).color(color[0], color[1], color[2], 1f).endVertex();
+						bufferbuilder.pos(xOffset + uvs[2], yOffset + uvs[3], 0).tex(maxU, maxV).color(color[0], color[1], color[2], 1f).endVertex();
+						bufferbuilder.pos(xOffset + uvs[2], yOffset, 0).tex(maxU, minV).color(color[0], color[1], color[2], 1f).endVertex();
+						bufferbuilder.pos(xOffset, yOffset, 0).tex(minU, minV).color(color[0], color[1], color[2], 1f).endVertex();
+					}
+				}
+			}
+		}
+		bufferbuilder.finishDrawing();
+		WorldVertexBufferUploader.draw(bufferbuilder);
+	}
 }
