@@ -1,6 +1,7 @@
 package net.darkhax.bingo.api;
 
 import java.io.BufferedReader;
+import java.lang.reflect.Type;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -9,6 +10,10 @@ import javax.annotation.Nullable;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonDeserializationContext;
+import com.google.gson.JsonDeserializer;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonParseException;
 
 import net.darkhax.bingo.ModdedBingo;
 import net.darkhax.bingo.api.effects.collection.CollectionEffect;
@@ -30,18 +35,24 @@ import net.darkhax.bingo.api.goal.GoalTable;
 import net.darkhax.bingo.api.team.Team;
 import net.darkhax.bingo.data.BingoEffectTypeAdapter;
 import net.darkhax.bingo.data.GameState;
+import net.darkhax.bookshelf.util.MCJsonUtils;
 import net.minecraft.block.Block;
+import net.minecraft.block.BlockState;
 import net.minecraft.enchantment.Enchantment;
 import net.minecraft.entity.EntityType;
 import net.minecraft.item.DyeColor;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.potion.Effect;
 import net.minecraft.potion.Potion;
+import net.minecraft.tileentity.FurnaceTileEntity;
+import net.minecraft.util.JSONUtils;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.SoundEvent;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraft.world.biome.Biome;
 import net.minecraftforge.registries.ForgeRegistries;
+import net.minecraftforge.resource.ISelectiveResourceReloadListener;
 
 /**
  * This is the central API class for interacting with the bingo mod. If you are coding custom
@@ -53,7 +64,7 @@ public class BingoAPI {
     /**
      * The current game state instance.
      */
-    public static final GameState GAME_STATE = new GameState();
+    public static GameState GAME_STATE = new GameState();
 
     /**
      * A constant reference to the red team.
@@ -108,7 +119,7 @@ public class BingoAPI {
     /**
      * A constant reference to the Gson instance used to (de)serialize bingo game objects.
      */
-    private static final Gson gson = buildGsonInstance();
+    public static final Gson gson = buildGsonInstance();
 
     /**
      * A map of all known game modes that have been loaded. Populated in
@@ -215,77 +226,17 @@ public class BingoAPI {
 
         return gameModes.get(name);
     }
-
+    
     /**
-     * Loads all of the bingo game data from the relevant json files. This is automatically
-     * called by
-     * {@link ModdedBingo#init(net.minecraftforge.fml.common.event.FMLInitializationEvent)},
-     * however it can be called again to force a reload of the data.
+     * Called from BingoDataReader during data lading
+     * @param gamemode the gamemode that should be added 
      */
-    public static void loadData () {
-
-        gameModes.clear();
-        goalTables.clear();
-
-        //TODO: implement
-        /*
-        final DataLoader loader = new DataLoader(ModdedBingo.LOG);
-
-        loader.addDataProvider(new DataProviderModsOverridable(ModdedBingo.MOD_ID));
-        loader.addDataProvider(new DataProviderConfigs(ModdedBingo.MOD_ID));
-        loader.addDataProvider(new DataProviderAddons(ModdedBingo.MOD_ID));
-
-        loader.addProcessor("goaltable", BingoAPI::processGoalTables);
-        loader.addProcessor("gamemode", BingoAPI::processGameModes);
-
-        loader.loadData();
-        */
+    public static void addGameMode(GameMode gamemode) {
+    	gameModes.put(gamemode.getModeId(), gamemode);
     }
-
-    /**
-     * Processes a goal table file that has been loaded using the data loader.
-     *
-     * @param id The suggested ID for the object.
-     * @param fileReader The contents of the file as a buffered reader.
-     */
-    private static void processGoalTables (ResourceLocation id, BufferedReader fileReader) {
-
-        final GoalTable table = gson.fromJson(fileReader, GoalTable.class);
-
-        if (table != null && table.getName() != null) {
-
-            ModdedBingo.LOG.info("Successfully loaded Goal Table: " + table.getName().toString());
-            goalTables.put(table.getName(), table);
-        }
-
-        // TODO handle the error cases
-    }
-
-    /**
-     * Processes a game mode file that has been loaded using the data loader.
-     *
-     * @param id The suggested ID for the object.
-     * @param fileReader The contents of the file as a buffered reader.
-     */
-    private static void processGameModes (ResourceLocation id, BufferedReader fileReader) {
-
-        final GameMode mode = gson.fromJson(fileReader, GameMode.class);
-
-        if (mode != null && mode.getModeId() != null) {
-
-            for (ResourceLocation tableId : mode.getGoalTables()) {
-                
-                if (!goalTables.containsKey(tableId)) {
-                    
-                    ModdedBingo.LOG.error("The game mode {} references unknown table {}. It will not be registered.", mode.getModeId().toString(), tableId.toString());
-                    return;
-                }
-            }
-            
-            ModdedBingo.LOG.info("Successfully loaded Game Mode: " + mode.getModeId().toString());
-            gameModes.put(mode.getModeId(), mode);
-        }
-        // TODO handle the error cases
+    
+    public static void addGoalTable(GoalTable goaltable) {
+    	goalTables.put(goaltable.getName(), goaltable);
     }
 
     /**
@@ -306,7 +257,35 @@ public class BingoAPI {
         builder.registerTypeAdapter(IGameplayEffect.class, gameplayEffectAdapter);
         builder.registerTypeAdapter(SpawnEffect.class, spawnEffectAdapter);
         builder.registerTypeAdapter(StartingEffect.class, startingEffectAdapter);
-
+        
+        builder.registerTypeAdapter(BlockState.class, new JsonDeserializer<BlockState>() {
+			@Override
+			public BlockState deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
+				return MCJsonUtils.deserializeBlockState(json.getAsJsonObject());
+			}
+		});
+        
+        builder.registerTypeAdapter(ResourceLocation.class, new JsonDeserializer<ResourceLocation>() {
+			@Override
+			public ResourceLocation deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
+				return new ResourceLocation(json.getAsString());
+			}
+        });
+        
+        builder.registerTypeAdapter(Effect.class, new JsonDeserializer<Effect>() {
+			@Override
+			public Effect deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
+				return MCJsonUtils.getRegistryEntry(json, "effect", ForgeRegistries.POTIONS);
+			}
+        });
+        
+        builder.registerTypeAdapter(Item.class, new JsonDeserializer<Item>() {
+			@Override
+			public Item deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
+				return JSONUtils.getItem(json, "item");
+			}
+        });
+        
         // Vanilla Class adapters
         //TODO: implement
         /*
@@ -320,7 +299,7 @@ public class BingoAPI {
         builder.registerTypeAdapter(Enchantment.class, new RegistryEntryAdapter<>(ForgeRegistries.ENCHANTMENTS));
         builder.registerTypeAdapter(EntityType.class, new RegistryEntryAdapter<>(ForgeRegistries.ENTITIES));
         builder.registerTypeAdapter(ResourceLocation.class, new ResourceLocationTypeAdapter());
-		*/
+        */
         return builder.create();
     }
 

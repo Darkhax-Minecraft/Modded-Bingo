@@ -1,0 +1,62 @@
+package net.darkhax.bingo.data;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParseException;
+
+import net.darkhax.bingo.ModdedBingo;
+import net.darkhax.bingo.api.BingoAPI;
+import net.darkhax.bingo.api.game.GameMode;
+import net.darkhax.bingo.api.goal.GoalTable;
+import net.minecraft.client.resources.JsonReloadListener;
+import net.minecraft.profiler.IProfiler;
+import net.minecraft.resources.IResourceManager;
+import net.minecraft.util.JSONUtils;
+import net.minecraft.util.ResourceLocation;
+
+public class BingoDataReader extends JsonReloadListener {
+
+	public BingoDataReader() {
+		super(BingoAPI.gson, "bingo");
+	}
+
+	@Override
+	protected void apply(Map<ResourceLocation, JsonObject> objectIn, IResourceManager resourceManagerIn, IProfiler profilerIn) {
+		List<GameMode> gamemodes = new ArrayList<>();
+		objectIn.forEach((rl, jsonObject) -> {
+			try {
+				String type = JSONUtils.getString(jsonObject, "type");
+				if(type.equalsIgnoreCase("gamemode")) {
+					GameMode gamemode = BingoAPI.gson.fromJson(jsonObject, GameMode.class);
+					gamemodes.add(gamemode);
+				}else if(type.equalsIgnoreCase("goaltable")) {
+					GoalTable goaltable = BingoAPI.gson.fromJson(jsonObject, GoalTable.class);
+					BingoAPI.addGoalTable(goaltable);
+				}else {
+					ModdedBingo.LOG.error("Parsing error loading bingo data {} - unknown type", rl, type);
+				}
+			}catch(JsonParseException jsonparseexception) {
+				ModdedBingo.LOG.error("Parsing error loading bingo data {}", rl, jsonparseexception);
+			}
+		});
+
+		for(GameMode gamemode : gamemodes) {
+			boolean valid = true;
+			for(ResourceLocation tableId : gamemode.getGoalTables()) {
+				if(BingoAPI.getGoalTable(tableId) == null) {
+					ModdedBingo.LOG.error("The game mode {} references unknown table {}. It will not be registered.", gamemode.getModeId().toString(), tableId.toString());
+					valid = false;
+					break;
+				}
+			}
+			if(valid) {
+				ModdedBingo.LOG.info("Successfully loaded Game Mode: " + gamemode.getModeId().toString());
+				BingoAPI.addGameMode(gamemode);
+			}
+		}
+	}
+
+}

@@ -1,12 +1,14 @@
 {
+  "type": "gamemode",
   "modeId": "bingo:default",
   "goalTables": ["bingo:default"],
   "spawnEffects": [
     {
       "type": "bingo:randomize_spawn",
       "setSpawn": true,
-      "fallbackBlock": "minecraft:bedrock",
-      "meta": 0
+      "fallbackBlock": {
+        "block": "minecraft:bedrock"
+      }
     },
     {
       "type": "bingo:clear_inventory"

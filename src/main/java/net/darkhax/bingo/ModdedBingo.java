@@ -7,7 +7,10 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import net.darkhax.bingo.api.BingoAPI;
+import net.darkhax.bingo.commands.CommandBingo;
+import net.darkhax.bingo.data.BingoDataReader;
 import net.darkhax.bingo.data.BingoPersistantData;
+import net.darkhax.bingo.network.PacketSyncGameState;
 import net.darkhax.bingo.network.PacketSyncGoal;
 import net.darkhax.bookshelf.network.NetworkHelper;
 import net.minecraft.nbt.CompoundNBT;
@@ -18,7 +21,9 @@ import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
+import net.minecraftforge.fml.event.server.FMLServerAboutToStartEvent;
 import net.minecraftforge.fml.event.server.FMLServerStartedEvent;
+import net.minecraftforge.fml.event.server.FMLServerStartingEvent;
 import net.minecraftforge.fml.event.server.FMLServerStoppingEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 
@@ -32,6 +37,8 @@ public class ModdedBingo {
     public ModdedBingo() {
     	 MinecraftForge.EVENT_BUS.register(this);
     	 FMLJavaModLoadingContext.get().getModEventBus().addListener(this::setup);
+    	 //TODO: needed?
+    	 FMLJavaModLoadingContext.get().getModEventBus().addListener(this::serverStarting);
     	 FMLJavaModLoadingContext.get().getModEventBus().addListener(this::serverStarted);
     	 FMLJavaModLoadingContext.get().getModEventBus().addListener(this::serverStopping);
     }
@@ -40,9 +47,19 @@ public class ModdedBingo {
     	//NETWORK.register(PacketSyncGameState.class, Side.CLIENT);
     	
     	NETWORK.registerEnqueuedMessage(PacketSyncGoal.class, PacketSyncGoal::encode, PacketSyncGoal::new, PacketSyncGoal::handle);
+    	NETWORK.registerEnqueuedMessage(PacketSyncGameState.class, PacketSyncGameState::encode, PacketSyncGameState::new, PacketSyncGameState::handle);
         
-        BingoAPI.loadData();
         //BookshelfRegistry.addCommand(new CommandBingo());
+    }
+    
+    @SubscribeEvent
+    public void serverAboutToStart(FMLServerAboutToStartEvent event) {
+    	event.getServer().getResourceManager().addReloadListener(new BingoDataReader());
+    }
+    
+    @SubscribeEvent
+    public void serverStarting(FMLServerStartingEvent event) {
+    	CommandBingo.initializeCommands(event.getCommandDispatcher());
     }
 
     @SubscribeEvent
@@ -74,7 +91,7 @@ public class ModdedBingo {
         else {
             
             // reset the game state
-            BingoAPI.GAME_STATE.read(null);
+            BingoAPI.GAME_STATE.read((CompoundNBT)null);
         }
     }
 

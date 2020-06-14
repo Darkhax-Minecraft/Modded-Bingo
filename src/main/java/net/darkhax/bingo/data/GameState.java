@@ -23,6 +23,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.nbt.ListNBT;
 import net.minecraft.nbt.StringNBT;
+import net.minecraft.network.PacketBuffer;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.common.util.Constants.NBT;
@@ -550,6 +551,83 @@ public class GameState {
                 }
             }
         }
+    }
+    
+    public void read(PacketBuffer buffer) {
+    	this.isActive = buffer.readBoolean();
+    	this.hasStarted = buffer.readBoolean();
+    	this.groupTeams = buffer.readBoolean();
+    	this.blackout = buffer.readBoolean();
+    	this.startTime = buffer.readLong();
+    	this.endTime = buffer.readLong();
+    	this.mode = null;
+    	this.table = null;
+        this.random = null;
+        this.goals = new ItemStack[5][5];
+        this.completionStates = new Team[5][5][4];
+        String winnerStr = buffer.readString();
+        this.winner = winnerStr.isEmpty() ? null : Team.getTeamByName(winnerStr);
+        
+        if(buffer.readBoolean()) {
+        	this.mode = BingoAPI.getGameMode(new ResourceLocation(buffer.readString()));
+        	this.table = BingoAPI.getGoalTable(new ResourceLocation(buffer.readString()));
+        	
+        	//read the goal items
+    		for (int x = 0; x < 5; x++) {
+                for (int y = 0; y < 5; y++) {
+                	this.goals[x][y] = buffer.readItemStack();
+                }
+            }
+    		
+    		// read the completion states
+    		for (int x = 0; x < 5; x++) {
+                for (int y = 0; y < 5; y++) {
+                	String completedTeam = buffer.readString();
+                	if(!completedTeam.isEmpty()) {
+                		Team team = Team.getTeamByName(completedTeam);
+                		this.completionStates[x][y][team.getTeamCorner()] = team;
+                	}
+                }
+            }
+    		
+        }
+    }
+    
+    public void write(PacketBuffer buffer) {
+    	buffer.writeBoolean(this.isActive());
+    	buffer.writeBoolean(this.hasStarted());
+    	buffer.writeBoolean(this.shouldGroupTeams());
+    	buffer.writeBoolean(this.blackout);
+    	buffer.writeLong(this.startTime);
+    	buffer.writeLong(this.endTime);
+    	buffer.writeString(this.winner != null ? this.winner.getTeamKey() : "");
+    	
+    	if(this.getTable() != null && this.mode != null) {
+    		buffer.writeBoolean(true);
+    		
+    		buffer.writeString(this.mode.getModeId().toString());
+    		buffer.writeString(this.getTable().getName().toString());
+    		
+    		//write the goal items
+    		for (int x = 0; x < 5; x++) {
+                for (int y = 0; y < 5; y++) {
+                	buffer.writeItemStack(this.goals[x][y]);
+                }
+            }
+    		
+    		// Write the completion states
+    		for (int x = 0; x < 5; x++) {
+                for (int y = 0; y < 5; y++) {
+                	for (final Team completedTeam : this.completionStates[x][y]) {
+                        buffer.writeString(completedTeam != null ? completedTeam.getTeamKey() : "");
+                    }
+                }
+            }
+    		
+    	}else {
+    		buffer.writeBoolean(false); //end of data
+    	}
+    	
     }
 
     /**
