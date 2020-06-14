@@ -23,7 +23,7 @@ public class CommandBingoCreate {
 	public static LiteralArgumentBuilder<CommandSource> register() {
 		LiteralArgumentBuilder<CommandSource> builder = Commands.literal("create").requires(sender ->sender.hasPermissionLevel(2));
 		
-				builder.then(Commands.argument("gamemode", ResourceLocationArgument.resourceLocation()))
+				builder.then(Commands.argument("gamemode", ResourceLocationArgument.resourceLocation())
 						.executes(ctx -> {
 							execute(ctx.getSource(), ResourceLocationArgument.getResourceLocation(ctx, "gamemode"), true, false, -1);
 							return 1;
@@ -45,7 +45,8 @@ public class CommandBingoCreate {
 												})
 										)
 								)
-						);
+						)
+					);
 		
 		builder.executes(ctx -> {
 			execute(ctx.getSource(), new ResourceLocation("bingo:default"), true, false, -1);

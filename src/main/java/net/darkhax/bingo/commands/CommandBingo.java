@@ -11,6 +11,7 @@ public class CommandBingo {
 		dispatcher.register(
 	            LiteralArgumentBuilder.<CommandSource>literal("bingo")
 	            .then(CommandBingoCreate.register())
+	            .then(CommandBingoTeam.register())
 	        );
 	}
    
