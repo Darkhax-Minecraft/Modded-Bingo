@@ -8,9 +8,7 @@ import java.util.UUID;
 import net.darkhax.bingo.api.BingoAPI;
 import net.darkhax.bingo.api.team.Team;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.nbt.ListNBT;
-import net.minecraftforge.common.util.Constants.NBT;
+import net.minecraft.network.PacketBuffer;
 
 /**
  * This class is responsible for handling all save data that is persistent in the world.
@@ -43,53 +41,37 @@ public class BingoPersistantData {
 
         PLAYER_TEAMS.put(player.getUniqueID(), team);
     }
-
+    
     /**
-     * Writes all of the data to an NBTTagCompound.
-     *
-     * @return A tag compound containing all the data.
+     * Writes all of the data to the provided PacketBuffer
+     * 
+     * @param buffer The PacketBuffer to write the game state to.
      */
-    public static CompoundNBT write () {
-
-        final CompoundNBT saveData = new CompoundNBT();
-
-        final ListNBT list = new ListNBT();
-        saveData.put("TeamData", list);
-
-        for (final Entry<UUID, Team> entry : PLAYER_TEAMS.entrySet()) {
-
-            final CompoundNBT entryTag = new CompoundNBT();
-            entryTag.putUniqueId("PlayerUUID", entry.getKey());
-            entryTag.putString("Team", entry.getValue().getDyeColor().getTranslationKey());
-            list.add(entryTag);
+    public static void write(PacketBuffer buffer) {
+    	buffer.writeVarInt(PLAYER_TEAMS.entrySet().size());
+    	for (final Entry<UUID, Team> entry : PLAYER_TEAMS.entrySet()) {
+    		buffer.writeUniqueId(entry.getKey());
+    		buffer.writeString(entry.getValue().getDyeColor().getTranslationKey());
         }
-
-        saveData.put("GameState", BingoAPI.GAME_STATE.write());
-        return saveData;
+    	BingoAPI.GAME_STATE.write(buffer);
+    }
+    
+    /**
+     * Reads data from a PacketBuffer.
+     * 
+     * @param buffer The PacketBuffer to read from.
+     */
+    public static void read(PacketBuffer buffer) {
+    	PLAYER_TEAMS.clear();
+    	int numPlayer = buffer.readVarInt();
+    	for(int i = 0; i < numPlayer; i++) {
+    		final UUID uuid = buffer.readUniqueId();
+    		final Team team = Team.getTeamByName(buffer.readString(30));
+    		if(team != null) {
+    			PLAYER_TEAMS.put(uuid, team);
+    		}
+    	}
+    	BingoAPI.GAME_STATE.read(buffer);
     }
 
-    /**
-     * Reads data from an nbt tag compound.
-     *
-     * @param tag The tag to read from.
-     */
-    public static void read (CompoundNBT tag) {
-
-        PLAYER_TEAMS.clear();
-
-        final ListNBT playersData = tag.getList("TeamData", NBT.TAG_COMPOUND);
-
-        for (int i = 0; i < playersData.size(); i++) {
-
-            final CompoundNBT playerData = playersData.getCompound(i);
-            final Team team = Team.getTeamByName(playerData.getString("Team"));
-
-            if (team != null) {
-
-                PLAYER_TEAMS.put(playerData.getUniqueId("PlayerUUID"), team);
-            }
-        }
-
-        BingoAPI.GAME_STATE.read(tag.getCompound("GameState"));
-    }
 }

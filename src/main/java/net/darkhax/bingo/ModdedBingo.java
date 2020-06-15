@@ -1,11 +1,15 @@
 package net.darkhax.bingo;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.file.Files;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import net.darkhax.bingo.api.BingoAPI;
 import net.darkhax.bingo.commands.CommandBingo;
 import net.darkhax.bingo.data.BingoDataReader;
@@ -13,8 +17,7 @@ import net.darkhax.bingo.data.BingoPersistantData;
 import net.darkhax.bingo.network.PacketSyncGameState;
 import net.darkhax.bingo.network.PacketSyncGoal;
 import net.darkhax.bookshelf.network.NetworkHelper;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.nbt.CompressedStreamTools;
+import net.minecraft.network.PacketBuffer;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.world.dimension.DimensionType;
 import net.minecraftforge.common.MinecraftForge;
@@ -43,13 +46,9 @@ public class ModdedBingo {
     	 FMLJavaModLoadingContext.get().getModEventBus().addListener(this::serverStopping);
     }
     
-    private void setup(final FMLCommonSetupEvent event) {
-    	//NETWORK.register(PacketSyncGameState.class, Side.CLIENT);
-    	
+    private void setup(final FMLCommonSetupEvent event) {    	
     	NETWORK.registerEnqueuedMessage(PacketSyncGoal.class, PacketSyncGoal::encode, PacketSyncGoal::new, PacketSyncGoal::handle);
     	NETWORK.registerEnqueuedMessage(PacketSyncGameState.class, PacketSyncGameState::encode, PacketSyncGameState::new, PacketSyncGameState::handle);
-        
-        //BookshelfRegistry.addCommand(new CommandBingo());
     }
     
     @SubscribeEvent
@@ -70,19 +69,11 @@ public class ModdedBingo {
         final File bingoFile = new File(event.getServer().getWorld(DimensionType.OVERWORLD).getSaveHandler().getWorldDirectory(), "bingo.data");
 
         if (bingoFile.exists()) {
-
-            try {
-
-                final CompoundNBT tag = CompressedStreamTools.read(bingoFile);
-
-                if (tag != null) {
-
-                    BingoPersistantData.read(tag);
-                }
+            try{
+            	byte[] data = Files.readAllBytes(bingoFile.toPath());
+            	BingoPersistantData.read(new PacketBuffer(Unpooled.wrappedBuffer(data)));
             }
-
             catch (final IOException e) {
-
                 LOG.warn("Failed to read bingo data. This is not good.");
                 LOG.catching(e);
             }
@@ -91,7 +82,7 @@ public class ModdedBingo {
         else {
             
             // reset the game state
-            BingoAPI.GAME_STATE.read((CompoundNBT)null);
+            BingoAPI.GAME_STATE.read((PacketBuffer)null);
         }
     }
 
@@ -101,8 +92,10 @@ public class ModdedBingo {
         // Write the bingo data to the world when the server stops.
         final File bingoFile = new File(event.getServer().getWorld(DimensionType.OVERWORLD).getSaveHandler().getWorldDirectory(), "bingo.data");
 
-        try {
-            CompressedStreamTools.write(BingoPersistantData.write(), bingoFile);
+        try(FileOutputStream fos = new FileOutputStream(bingoFile)) {
+        	ByteBuf byteBuf = Unpooled.buffer();
+        	BingoPersistantData.write(new PacketBuffer(byteBuf));
+        	fos.write(byteBuf.array());
         }
         catch (final IOException e) {
             LOG.error("Failed to write bingo data. This is not good.");

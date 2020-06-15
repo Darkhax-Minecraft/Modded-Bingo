@@ -15,7 +15,6 @@ import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParseException;
 
-import net.darkhax.bingo.ModdedBingo;
 import net.darkhax.bingo.api.effects.collection.CollectionEffect;
 import net.darkhax.bingo.api.effects.collection.CollectionEffectAnnouncement;
 import net.darkhax.bingo.api.effects.collection.CollectionEffectFirework;
@@ -36,23 +35,14 @@ import net.darkhax.bingo.api.team.Team;
 import net.darkhax.bingo.data.BingoEffectTypeAdapter;
 import net.darkhax.bingo.data.GameState;
 import net.darkhax.bookshelf.util.MCJsonUtils;
-import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
-import net.minecraft.enchantment.Enchantment;
-import net.minecraft.entity.EntityType;
 import net.minecraft.item.DyeColor;
 import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
 import net.minecraft.potion.Effect;
-import net.minecraft.potion.Potion;
-import net.minecraft.tileentity.FurnaceTileEntity;
 import net.minecraft.util.JSONUtils;
 import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.SoundEvent;
 import net.minecraft.util.text.TextFormatting;
-import net.minecraft.world.biome.Biome;
 import net.minecraftforge.registries.ForgeRegistries;
-import net.minecraftforge.resource.ISelectiveResourceReloadListener;
 
 /**
  * This is the central API class for interacting with the bingo mod. If you are coding custom

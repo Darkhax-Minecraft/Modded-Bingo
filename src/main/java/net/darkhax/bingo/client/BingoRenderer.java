@@ -2,7 +2,6 @@ package net.darkhax.bingo.client;
 
 import org.lwjgl.opengl.GL11;
 
-import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 
 import net.darkhax.bingo.ModdedBingo;
@@ -105,6 +104,7 @@ public class BingoRenderer {
 		bufferbuilder.pos((double) x1, (double) y0, (double) z).tex(u1, v0).endVertex();
 		bufferbuilder.pos((double) x0, (double) y0, (double) z).tex(u0, v0).endVertex();
 		bufferbuilder.finishDrawing();
+		RenderSystem.enableAlphaTest();
 		WorldVertexBufferUploader.draw(bufferbuilder);
 
 		bufferbuilder.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_TEX_COLOR);

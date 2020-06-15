@@ -55,9 +55,7 @@ public class CommandBingoCreate {
 		return builder;
 	}
 	
-	private static void execute(CommandSource source, ResourceLocation gamemodeRL, boolean groupTeam, boolean blackout, int seed) throws CommandSyntaxException {
-		ModdedBingo.LOG.info("/bingo create {} {} {} {}", gamemodeRL, groupTeam, blackout, seed);
-		
+	private static void execute(CommandSource source, ResourceLocation gamemodeRL, boolean groupTeam, boolean blackout, int seed) throws CommandSyntaxException {		
 		final GameMode gameMode = BingoAPI.getGameMode(gamemodeRL);
 		if(gameMode == null) {
 			throw new DynamicCommandExceptionType(rl -> new TranslationTextComponent("command.bingo.create.unknown", rl)).create(gamemodeRL);

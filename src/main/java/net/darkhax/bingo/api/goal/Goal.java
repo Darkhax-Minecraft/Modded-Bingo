@@ -18,7 +18,6 @@ public class Goal extends WeightedObject {
     private Item item;
 
     public ItemStack getTarget () {
-    	//TODO: caps needed?
         return new ItemStack(this.item, 1);
     }
 

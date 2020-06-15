@@ -133,7 +133,6 @@ public class Team {
     public ItemStack getFireworStack () {
 
         if (this.fireworStack == null || this.fireworStack.isEmpty()) {
-        	//TODO: check if this is correct
             this.fireworStack = new ItemStack(Items.FIREWORK_STAR);
             final CompoundNBT baseTag = this.fireworStack.getOrCreateTag();
             final CompoundNBT fireworks = new CompoundNBT();
@@ -156,10 +155,9 @@ public class Team {
      */
     public void spawnFirework (ServerPlayerEntity player) {
         final FireworkRocketEntity rocket = new FireworkRocketEntity(player.getEntityWorld(), player.getPosX(), player.getPosY(), player.getPosZ(), this.getFireworStack());
-        ObfuscationReflectionHelper.setPrivateValue(FireworkRocketEntity.class, rocket, 0, "field_92055_b");
+        ObfuscationReflectionHelper.setPrivateValue(FireworkRocketEntity.class, rocket, 0, "field_92055_b"); //lifetime
         player.getEntityWorld().addEntity(rocket);
         player.world.setEntityState(rocket, (byte) 17);
-        //TODO: rocket.setDead();
     }
 
     /**
