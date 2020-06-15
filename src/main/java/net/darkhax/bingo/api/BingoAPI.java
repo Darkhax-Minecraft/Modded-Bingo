@@ -228,6 +228,10 @@ public class BingoAPI {
     	gameModes.put(gamemode.getModeId(), gamemode);
     }
     
+    /**
+     * Called from BingoDataReader during data lading
+     * @param goaltable the goaltable that should be added
+     */
     public static void addGoalTable(GoalTable goaltable) {
     	goalTables.put(goaltable.getName(), goaltable);
     }
