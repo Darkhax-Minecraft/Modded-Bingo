@@ -40,10 +40,6 @@ public class ModdedBingo {
     public ModdedBingo() {
     	 MinecraftForge.EVENT_BUS.register(this);
     	 FMLJavaModLoadingContext.get().getModEventBus().addListener(this::setup);
-    	 //TODO: needed?
-    	 FMLJavaModLoadingContext.get().getModEventBus().addListener(this::serverStarting);
-    	 FMLJavaModLoadingContext.get().getModEventBus().addListener(this::serverStarted);
-    	 FMLJavaModLoadingContext.get().getModEventBus().addListener(this::serverStopping);
     }
     
     private void setup(final FMLCommonSetupEvent event) {    	
@@ -82,7 +78,7 @@ public class ModdedBingo {
         else {
             
             // reset the game state
-            BingoAPI.GAME_STATE.read((PacketBuffer)null);
+            BingoAPI.GAME_STATE.read(null);
         }
     }
 

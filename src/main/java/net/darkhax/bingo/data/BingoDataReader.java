@@ -20,7 +20,7 @@ import net.minecraft.util.ResourceLocation;
 public class BingoDataReader extends JsonReloadListener {
 
 	public BingoDataReader() {
-		super(BingoAPI.gson, "bingo");
+		super(BingoAPI.GSON, "bingo");
 	}
 
 	@Override
@@ -30,10 +30,10 @@ public class BingoDataReader extends JsonReloadListener {
 			try {
 				String type = JSONUtils.getString(jsonObject, "type");
 				if(type.equalsIgnoreCase("gamemode")) {
-					GameMode gamemode = BingoAPI.gson.fromJson(jsonObject, GameMode.class);
+					GameMode gamemode = BingoAPI.GSON.fromJson(jsonObject, GameMode.class);
 					gamemodes.add(gamemode);
 				}else if(type.equalsIgnoreCase("goaltable")) {
-					GoalTable goaltable = BingoAPI.gson.fromJson(jsonObject, GoalTable.class);
+					GoalTable goaltable = BingoAPI.GSON.fromJson(jsonObject, GoalTable.class);
 					BingoAPI.addGoalTable(goaltable);
 				}else {
 					ModdedBingo.LOG.error("Parsing error loading bingo data {} - unknown type", rl, type);

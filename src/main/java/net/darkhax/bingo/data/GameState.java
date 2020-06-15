@@ -512,14 +512,14 @@ public class GameState {
     	this.blackout = buffer.readBoolean();
     	this.startTime = buffer.readLong();
     	this.endTime = buffer.readLong();
-        String winnerStr = buffer.readString();
+        String winnerStr = buffer.readString(30);
         if(!winnerStr.isEmpty()) {
         	this.winner = Team.getTeamByName(winnerStr);
         }
         
         if(buffer.readBoolean()) {
-        	this.mode = BingoAPI.getGameMode(new ResourceLocation(buffer.readString()));
-        	this.table = BingoAPI.getGoalTable(new ResourceLocation(buffer.readString()));
+        	this.mode = BingoAPI.getGameMode(new ResourceLocation(buffer.readString(30)));
+        	this.table = BingoAPI.getGoalTable(new ResourceLocation(buffer.readString(30)));
         	
         	//read the goal items
     		for (int x = 0; x < 5; x++) {
@@ -532,7 +532,7 @@ public class GameState {
     		for (int x = 0; x < 5; x++) {
                 for (int y = 0; y < 5; y++) {
                 	for(int z = 0; z < 4; z++) {
-                		String completedTeam = buffer.readString();
+                		String completedTeam = buffer.readString(30);
                     	if(!completedTeam.isEmpty()) {
                     		Team team = Team.getTeamByName(completedTeam);
                     		this.completionStates[x][y][team.getTeamCorner()] = team;

@@ -14,9 +14,9 @@ import net.darkhax.bingo.api.effects.spawn.SpawnEffect;
 import net.darkhax.bingo.api.team.Team;
 import net.darkhax.bingo.data.BingoPersistantData;
 import net.darkhax.bingo.network.PacketSyncGameState;
+import net.darkhax.bookshelf.util.CommandUtils;
 import net.darkhax.bookshelf.util.MathsUtils;
 import net.minecraft.command.CommandSource;
-import net.minecraft.command.Commands;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.util.Direction;
 import net.minecraft.util.math.BlockPos;
@@ -25,11 +25,10 @@ import net.minecraft.util.text.TranslationTextComponent;
 public class CommandBingoStart {
 
 	public static LiteralArgumentBuilder<CommandSource> register() {
-		return Commands.literal("start").requires(sender ->sender.hasPermissionLevel(2))
-				.executes(ctx -> {
-					execute(ctx.getSource().asPlayer());
-					return 1;
-				});
+		return CommandUtils.createCommand("start", 2, ctx -> {
+			execute(ctx.getSource().asPlayer());
+			return 1;
+		});
 	}
 	
 	private static void execute(ServerPlayerEntity source) throws CommandSyntaxException {

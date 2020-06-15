@@ -1,6 +1,5 @@
 package net.darkhax.bingo.api;
 
-import java.io.BufferedReader;
 import java.lang.reflect.Type;
 import java.util.Collection;
 import java.util.HashMap;
@@ -36,12 +35,16 @@ import net.darkhax.bingo.data.BingoEffectTypeAdapter;
 import net.darkhax.bingo.data.GameState;
 import net.darkhax.bookshelf.util.MCJsonUtils;
 import net.minecraft.block.BlockState;
+import net.minecraft.enchantment.Enchantment;
+import net.minecraft.entity.EntityType;
 import net.minecraft.item.DyeColor;
 import net.minecraft.item.Item;
 import net.minecraft.potion.Effect;
 import net.minecraft.util.JSONUtils;
 import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.SoundEvent;
 import net.minecraft.util.text.TextFormatting;
+import net.minecraft.world.biome.Biome;
 import net.minecraftforge.registries.ForgeRegistries;
 
 /**
@@ -109,17 +112,17 @@ public class BingoAPI {
     /**
      * A constant reference to the Gson instance used to (de)serialize bingo game objects.
      */
-    public static final Gson gson = buildGsonInstance();
+    public static final Gson GSON = buildGsonInstance();
 
     /**
-     * A map of all known game modes that have been loaded. Populated in
-     * {@link #processGameModes(ResourceLocation, BufferedReader)}.
+     * A map of all known game modes that have been loaded. Populated during datapack loading in
+     * {@link BingoDataReader}.
      */
     private static Map<ResourceLocation, GameMode> gameModes = new HashMap<>();
 
     /**
-     * A map of all known goal tables that have been loaded. Populated in
-     * {@link #processGoalTables(ResourceLocation, BufferedReader)}.
+     * A map of all known goal tables that have been loaded. Populated during datapack loading in
+     * {@link BingoDataReader}.
      */
     private static Map<ResourceLocation, GoalTable> goalTables = new HashMap<>();
 
@@ -248,6 +251,8 @@ public class BingoAPI {
         builder.registerTypeAdapter(SpawnEffect.class, spawnEffectAdapter);
         builder.registerTypeAdapter(StartingEffect.class, startingEffectAdapter);
         
+        
+        // Vanilla Class adapters
         builder.registerTypeAdapter(BlockState.class, new JsonDeserializer<BlockState>() {
 			@Override
 			public BlockState deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
@@ -276,20 +281,34 @@ public class BingoAPI {
 			}
         });
         
-        // Vanilla Class adapters
-        //TODO: implement
-        /*
-        builder.registerTypeAdapter(ItemStack.class, new ItemStackAdapter());
-        builder.registerTypeAdapter(Block.class, new RegistryEntryAdapter<>(ForgeRegistries.BLOCKS));
-        builder.registerTypeAdapter(Item.class, new RegistryEntryAdapter<>(ForgeRegistries.ITEMS));
-        builder.registerTypeAdapter(Potion.class, new RegistryEntryAdapter<>(ForgeRegistries.POTIONS));
-        builder.registerTypeAdapter(Biome.class, new RegistryEntryAdapter<>(ForgeRegistries.BIOMES));
-        builder.registerTypeAdapter(SoundEvent.class, new RegistryEntryAdapter<>(ForgeRegistries.SOUND_EVENTS));
-        builder.registerTypeAdapter(Potion.class, new RegistryEntryAdapter<>(ForgeRegistries.POTION_TYPES));
-        builder.registerTypeAdapter(Enchantment.class, new RegistryEntryAdapter<>(ForgeRegistries.ENCHANTMENTS));
-        builder.registerTypeAdapter(EntityType.class, new RegistryEntryAdapter<>(ForgeRegistries.ENTITIES));
-        builder.registerTypeAdapter(ResourceLocation.class, new ResourceLocationTypeAdapter());
-        */
+        builder.registerTypeAdapter(Biome.class, new JsonDeserializer<Biome>() {
+			@Override
+			public Biome deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
+				return MCJsonUtils.getRegistryEntry(json, null, ForgeRegistries.BIOMES);
+			}
+		});
+        
+        builder.registerTypeAdapter(Enchantment.class, new JsonDeserializer<Enchantment>() {
+			@Override
+			public Enchantment deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
+				return MCJsonUtils.getRegistryEntry(json, null, ForgeRegistries.ENCHANTMENTS);
+			}
+		});
+        
+        builder.registerTypeAdapter(SoundEvent.class, new JsonDeserializer<SoundEvent>() {
+			@Override
+			public SoundEvent deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
+				return MCJsonUtils.getRegistryEntry(json, null, ForgeRegistries.SOUND_EVENTS);
+			}
+		});
+        
+        builder.registerTypeAdapter(EntityType.class, new JsonDeserializer<EntityType<?>>() {
+			@Override
+			public EntityType<?> deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
+				return MCJsonUtils.getRegistryEntry(json, null, ForgeRegistries.ENTITIES);
+			}
+        });
+
         return builder.create();
     }
 

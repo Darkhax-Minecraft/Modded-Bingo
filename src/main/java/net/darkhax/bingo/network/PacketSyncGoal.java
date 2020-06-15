@@ -37,7 +37,7 @@ public class PacketSyncGoal {
     public PacketSyncGoal (PacketBuffer buffer) {
     	this.x = buffer.readInt();
     	this.y = buffer.readInt();
-    	this.teamName = buffer.readString(100);
+    	this.teamName = buffer.readString(30);
     }
     
     public void encode(PacketBuffer buffer) {
