@@ -25,6 +25,7 @@ public class BingoDataReader extends JsonReloadListener {
 
 	@Override
 	protected void apply(Map<ResourceLocation, JsonObject> objectIn, IResourceManager resourceManagerIn, IProfiler profilerIn) {
+		BingoAPI.resetTables();
 		List<GameMode> gamemodes = new ArrayList<>();
 		objectIn.forEach((rl, jsonObject) -> {
 			try {

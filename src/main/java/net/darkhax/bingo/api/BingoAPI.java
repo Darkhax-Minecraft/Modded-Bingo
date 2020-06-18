@@ -235,6 +235,14 @@ public class BingoAPI {
     public static void addGoalTable(GoalTable goaltable) {
     	goalTables.put(goaltable.getName(), goaltable);
     }
+    
+    /**
+     * Called from BingoDataReader during data lading to clear previously loaded goaltables and gamemodes
+     */
+    public static void resetTables() {
+    	gameModes.clear();
+    	goalTables.clear();
+    }
 
     /**
      * Builds a Gson instance with all the type adapters and other properties used to properly
