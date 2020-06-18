@@ -1,74 +1,39 @@
 package net.darkhax.bingo.commands;
 
-import java.util.List;
-
-import javax.annotation.Nullable;
+import com.mojang.brigadier.builder.LiteralArgumentBuilder;
+import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import com.mojang.brigadier.exceptions.DynamicCommandExceptionType;
 
 import net.darkhax.bingo.api.team.Team;
 import net.darkhax.bingo.data.BingoPersistantData;
-import net.darkhax.bookshelf.command.Command;
-import net.minecraft.command.CommandException;
-import net.minecraft.command.ICommandSender;
-import net.minecraft.command.WrongUsageException;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.server.MinecraftServer;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.text.TextComponentTranslation;
+import net.minecraft.command.CommandSource;
+import net.minecraft.command.Commands;
+import net.minecraft.entity.player.ServerPlayerEntity;
+import net.minecraft.util.text.TranslationTextComponent;
 
-public class CommandBingoTeam extends Command {
+public class CommandBingoTeam {
 
-    @Override
-    public String getName () {
-
-        return "team";
-    }
-
-    @Override
-    public String getUsage (ICommandSender sender) {
-
-        return "command.bingo.team.usage";
-    }
-
-    @Override
-    public List<String> getTabCompletions (MinecraftServer server, ICommandSender sender, String[] args, @Nullable BlockPos targetPos) {
-
-        return getListOfStringsMatchingLastWord(args, Team.getTeamNames());
-    }
-
-    @Override
-    public void execute (MinecraftServer server, ICommandSender sender, String[] args) throws CommandException {
-
-        if (args.length == 1) {
-
-            final Team team = Team.getTeamByName(args[0].toLowerCase());
-
-            if (team != null && sender instanceof EntityPlayer) {
-
-                server.getPlayerList().sendMessage(new TextComponentTranslation("command.bingo.team.change", sender.getName(), team.getTeamName()));
-                BingoPersistantData.setTeam((EntityPlayer) sender, team);
-            }
-
-            else {
-
-                throw new WrongUsageException("command.bingo.team.unknown", args[0]);
-            }
-        }
-
-        else {
-
-            throw new WrongUsageException("command.bingo.team.usage");
-        }
-    }
-    
-    @Override
-    public int getRequiredPermissionLevel () {
-
-        return 0;
-    }
-
-    @Override
-    public boolean checkPermission (MinecraftServer server, ICommandSender sender) {
-
-        return this.getRequiredPermissionLevel() <= 0 || super.checkPermission(server, sender);
-    }
+	public static LiteralArgumentBuilder<CommandSource> register() {
+		LiteralArgumentBuilder<CommandSource> builder = Commands.literal("team").requires(sender ->sender.hasPermissionLevel(0));
+		
+		for(String team : Team.getTeamNames()) {
+			builder.then(Commands.literal(team)
+				.executes(ctx -> {
+					execute(ctx.getSource().asPlayer(), team);
+					return 1;
+				}));
+		}
+		
+		return builder;
+	}
+	
+	private static void execute(ServerPlayerEntity player, String teamStr) throws CommandSyntaxException {
+		final Team team = Team.getTeamByName(teamStr);
+		if(team == null) {
+			throw new DynamicCommandExceptionType(rl -> new TranslationTextComponent("command.bingo.team.unknown", rl)).create(teamStr);
+		}
+		
+		player.getServer().getPlayerList().sendMessage(new TranslationTextComponent("command.bingo.team.change", player.getName(), team.getTeamName()));
+		BingoPersistantData.setTeam(player, team);
+	}
 }

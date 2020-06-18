@@ -1,32 +1,34 @@
 package net.darkhax.bingo.network;
 
+import java.util.function.Supplier;
+
 import net.darkhax.bingo.api.BingoAPI;
-import net.darkhax.bookshelf.network.SerializableMessage;
-import net.minecraft.client.Minecraft;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
-import net.minecraftforge.fml.common.network.simpleimpl.MessageContext;
+import net.darkhax.bingo.data.GameState;
+import net.minecraft.network.PacketBuffer;
+import net.minecraftforge.fml.network.NetworkEvent;
 
 /**
  * This packet is used to serialize the game state to the client.
  */
-public class PacketSyncGameState extends SerializableMessage {
-
-    public NBTTagCompound gameState;
-
-    public PacketSyncGameState () {
-
+public class PacketSyncGameState {
+	
+	private final GameState gamestate;
+	
+	public PacketSyncGameState() {
+		this.gamestate = BingoAPI.GAME_STATE;
+	}
+	
+	public PacketSyncGameState(PacketBuffer buffer) {
+		this.gamestate = new GameState();
+		gamestate.read(buffer);
+	}
+	
+	public void encode(PacketBuffer buffer) {
+		gamestate.write(buffer);
     }
-
-    public PacketSyncGameState (NBTTagCompound gameState) {
-
-        this.gameState = gameState;
-    }
-
-    @Override
-    public IMessage handleMessage (MessageContext context) {
-
-        Minecraft.getMinecraft().addScheduledTask( () -> BingoAPI.GAME_STATE.read(this.gameState));
-        return null;
-    }
+	
+	public void handle(Supplier<NetworkEvent.Context> ctx) {
+		BingoAPI.GAME_STATE = gamestate;
+	}
+    
 }

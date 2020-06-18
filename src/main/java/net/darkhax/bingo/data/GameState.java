@@ -18,15 +18,11 @@ import net.darkhax.bingo.api.goal.Goal;
 import net.darkhax.bingo.api.goal.GoalTable;
 import net.darkhax.bingo.api.team.Team;
 import net.darkhax.bingo.network.PacketSyncGoal;
-import net.darkhax.bookshelf.util.StackUtils;
-import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.nbt.NBTTagList;
-import net.minecraft.nbt.NBTTagString;
+import net.minecraft.network.PacketBuffer;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.ResourceLocation;
-import net.minecraftforge.common.util.Constants.NBT;
 
 /**
  * This class represents the current and active gamestate. On the server is is the controller
@@ -168,7 +164,7 @@ public class GameState {
      * @param x The x pos of the goal.
      * @param y The y pos of the goal.
      */
-    public void setGoalComplete (@Nonnull EntityPlayerMP player, ItemStack item, int x, int y) {
+    public void setGoalComplete (@Nonnull ServerPlayerEntity player, ItemStack item, int x, int y) {
 
         final Team playerTeam = BingoPersistantData.getTeam(player);
 
@@ -181,10 +177,10 @@ public class GameState {
                 effect.onItemCollected(player, item, playerTeam);
             }
 
-            ModdedBingo.NETWORK.sendToAll(new PacketSyncGoal(x, y, playerTeam.getTeamKey()));
+            ModdedBingo.NETWORK.sendToAllPlayers(new PacketSyncGoal(x, y, playerTeam.getTeamKey()));
         }
 
-        this.updateWinState(player.server, player.world.getTotalWorldTime());
+        this.updateWinState(player.server, player.world.getGameTime());
     }
 
     /**
@@ -330,7 +326,7 @@ public class GameState {
      * @param player The player to check for.
      * @param stack The item they acquired.
      */
-    public void onPlayerPickupItem (EntityPlayerMP player, ItemStack stack) {
+    public void onPlayerPickupItem (ServerPlayerEntity player, ItemStack stack) {
 
         if (BingoAPI.GAME_STATE.hasStarted()) {
 
@@ -339,8 +335,7 @@ public class GameState {
                 for (int y = 0; y < 5; y++) {
 
                     final ItemStack goal = this.getGoal(x, y);
-
-                    if (StackUtils.areStacksSimilar(goal, stack)) {
+                    if (ItemStack.areItemsEqual(goal, stack)) {
 
                         this.setGoalComplete(player, stack, x, y);
                     }
@@ -376,7 +371,7 @@ public class GameState {
             generatedGoals.add(goal);
         }
 
-        Collections.shuffle(generatedGoals, this.random);
+        Collections.shuffle(generatedGoals, rand);
 
         int xOff = 0;
         int yOff = 0;
@@ -489,13 +484,12 @@ public class GameState {
     }
     
     /**
-     * Reads the game state from an NBT tag.
-     *
-     * @param tag The tag to read the game state from.
+     * Reads the game state from the provided a PacketBuffer.
+     * 
+     * @param buffer The PacketBuffer to read the game state from, or null to reset the GameState.
      */
-    public void read (NBTTagCompound tag) {
-
-        this.isActive = false;
+    public void read(@Nullable PacketBuffer buffer) {
+    	this.isActive = false;
         this.hasStarted = false;
         this.mode = null;
         this.table = null;
@@ -508,124 +502,88 @@ public class GameState {
         this.startTime = -1L;
         this.endTime = -1L;
         
-        if (tag != null) {
-
-            // Read basic game data
-            this.mode = BingoAPI.getGameMode(new ResourceLocation(tag.getString("GameMode")));
-            this.table = BingoAPI.getGoalTable(new ResourceLocation(tag.getString("GoalTable")));
-            this.isActive = tag.getBoolean("IsActive");
-            this.hasStarted = tag.getBoolean("HasStarted");
-            this.groupTeams = tag.getBoolean("GroupTeams");
-            this.blackout = tag.getBoolean("Blackout");
-            this.startTime = tag.getLong("StartTime");
-            this.endTime = tag.getLong("EndTime");
-            this.winner = Team.getTeamByName(tag.getString("Winner"));
-
-            if (this.table != null) {
-
-                // Read the goal items
-                final NBTTagList goalsTag = tag.getTagList("Goals", NBT.TAG_COMPOUND);
-
-                for (int i = 0; i < goalsTag.tagCount(); i++) {
-
-                    final NBTTagCompound goalTag = goalsTag.getCompoundTagAt(i);
-                    this.setGoal(goalTag.getInteger("X"), goalTag.getInteger("Y"), new ItemStack(goalTag.getCompoundTag("ItemStack")));
-                }
-
-                // Read the completion states
-                final NBTTagList completionTags = tag.getTagList("Completion", NBT.TAG_COMPOUND);
-
-                for (int i = 0; i < completionTags.tagCount(); i++) {
-
-                    final NBTTagCompound completionTag = completionTags.getCompoundTagAt(i);
-
-                    final int x = completionTag.getInteger("X");
-                    final int y = completionTag.getInteger("Y");
-
-                    final NBTTagList teamsTag = completionTag.getTagList("Teams", NBT.TAG_STRING);
-
-                    for (int j = 0; j < teamsTag.tagCount(); j++) {
-
-                        final Team team = Team.getTeamByName(teamsTag.getStringTagAt(j));
-                        this.completionStates[x][y][team.getTeamCorner()] = team;
-                    }
+        if(buffer == null) {
+        	return;
+        }
+    	
+    	this.isActive = buffer.readBoolean();
+    	this.hasStarted = buffer.readBoolean();
+    	this.groupTeams = buffer.readBoolean();
+    	this.blackout = buffer.readBoolean();
+    	this.startTime = buffer.readLong();
+    	this.endTime = buffer.readLong();
+        String winnerStr = buffer.readString(30);
+        if(!winnerStr.isEmpty()) {
+        	this.winner = Team.getTeamByName(winnerStr);
+        }
+        
+        if(buffer.readBoolean()) {
+        	this.mode = BingoAPI.getGameMode(new ResourceLocation(buffer.readString(30)));
+        	this.table = BingoAPI.getGoalTable(new ResourceLocation(buffer.readString(30)));
+        	
+        	//read the goal items
+    		for (int x = 0; x < 5; x++) {
+                for (int y = 0; y < 5; y++) {
+                	this.goals[x][y] = buffer.readItemStack();
                 }
             }
+    		
+    		// read the completion states
+    		for (int x = 0; x < 5; x++) {
+                for (int y = 0; y < 5; y++) {
+                	for(int z = 0; z < 4; z++) {
+                		String completedTeam = buffer.readString(30);
+                    	if(!completedTeam.isEmpty()) {
+                    		Team team = Team.getTeamByName(completedTeam);
+                    		this.completionStates[x][y][team.getTeamCorner()] = team;
+                    	}	
+                	}
+                }
+            }
+    		
         }
     }
-
+    
     /**
-     * Writes the current game state to an nbt tag.
-     *
-     * @return The tag that contains the state data.
+     * Writes the current game state to the provided PacketBuffer
+     * 
+     * @param buffer The PacketBuffer to write the game state to.
      */
-    public NBTTagCompound write () {
-
-        final NBTTagCompound tag = new NBTTagCompound();
-
-        tag.setBoolean("IsActive", this.isActive());
-        tag.setBoolean("HasStarted", this.hasStarted());
-        tag.setBoolean("GroupTeams", this.shouldGroupTeams());
-        tag.setBoolean("Blackout", this.blackout);
-        tag.setLong("StartTime", this.startTime);
-        tag.setLong("EndTime", this.endTime);
-        
-        if (this.winner != null) {
-        	
-        	tag.setString("Winner", this.winner.getTeamKey());
-        }
-
-        if (this.getTable() != null && this.mode != null) {
-
-            // Write basic game data
-            tag.setString("GameMode", this.mode.getModeId().toString());
-            tag.setString("GoalTable", this.getTable().getName().toString());
-
-            // Write the goal items
-            final NBTTagList goalTags = new NBTTagList();
-            tag.setTag("Goals", goalTags);
-
-            for (int x = 0; x < 5; x++) {
-
+    public void write(PacketBuffer buffer) {
+    	buffer.writeBoolean(this.isActive());
+    	buffer.writeBoolean(this.hasStarted());
+    	buffer.writeBoolean(this.shouldGroupTeams());
+    	buffer.writeBoolean(this.blackout);
+    	buffer.writeLong(this.startTime);
+    	buffer.writeLong(this.endTime);
+    	buffer.writeString(this.winner != null ? this.winner.getTeamKey() : "");
+    	
+    	if(this.getTable() != null && this.mode != null) {
+    		buffer.writeBoolean(true);
+    		
+    		buffer.writeString(this.mode.getModeId().toString());
+    		buffer.writeString(this.getTable().getName().toString());
+    		
+    		//write the goal items
+    		for (int x = 0; x < 5; x++) {
                 for (int y = 0; y < 5; y++) {
-
-                    final ItemStack goal = this.goals[x][y];
-                    final NBTTagCompound goalTag = new NBTTagCompound();
-                    goalTag.setInteger("X", x);
-                    goalTag.setInteger("Y", y);
-                    goalTag.setTag("ItemStack", goal.writeToNBT(new NBTTagCompound()));
-                    goalTags.appendTag(goalTag);
+                	buffer.writeItemStack(this.goals[x][y]);
                 }
             }
-
-            // Write the completion states
-            final NBTTagList completionTag = new NBTTagList();
-            tag.setTag("Completion", completionTag);
-
-            for (int x = 0; x < 5; x++) {
-
+    		
+    		// Write the completion states
+    		for (int x = 0; x < 5; x++) {
                 for (int y = 0; y < 5; y++) {
-
-                    final NBTTagCompound teamCompletionTag = new NBTTagCompound();
-                    teamCompletionTag.setInteger("X", x);
-                    teamCompletionTag.setInteger("Y", y);
-
-                    final NBTTagList teamsTag = new NBTTagList();
-                    teamCompletionTag.setTag("Teams", teamsTag);
-                    for (final Team completedTeam : this.completionStates[x][y]) {
-
-                        if (completedTeam != null) {
-
-                            teamsTag.appendTag(new NBTTagString(completedTeam.getTeamKey()));
-                        }
+                	for (final Team completedTeam : this.completionStates[x][y]) {
+                        buffer.writeString(completedTeam != null ? completedTeam.getTeamKey() : "");
                     }
-
-                    completionTag.appendTag(teamCompletionTag);
                 }
             }
-        }
-
-        return tag;
+    		
+    	}else {
+    		buffer.writeBoolean(false); //end of data
+    	}
+    	
     }
 
     public boolean isHasStarted () {

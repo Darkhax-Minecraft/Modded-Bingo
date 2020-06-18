@@ -7,15 +7,15 @@ import java.util.Map;
 
 import javax.annotation.Nullable;
 
-import net.minecraft.entity.item.EntityFireworkRocket;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.init.Items;
-import net.minecraft.item.EnumDyeColor;
+import net.minecraft.entity.item.FireworkRocketEntity;
+import net.minecraft.entity.player.ServerPlayerEntity;
+import net.minecraft.item.DyeColor;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.nbt.NBTTagList;
+import net.minecraft.item.Items;
+import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.nbt.ListNBT;
 import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.TextComponentString;
+import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraftforge.fml.common.ObfuscationReflectionHelper;
 
@@ -47,7 +47,7 @@ public class Team {
     /**
      * The dye color associated with the team.
      */
-    private final EnumDyeColor dyeColor;
+    private final DyeColor dyeColor;
 
     /**
      * A firework item that has the team color.
@@ -64,16 +64,15 @@ public class Team {
      */
     private final int color;
 
-    public Team (TextFormatting teamColorText, int teamCorner, EnumDyeColor dyeColor) {
-
+    public Team (TextFormatting teamColorText, int teamCorner, DyeColor dyeColor) {
         this.teamColorText = teamColorText;
         this.teamCorner = teamCorner;
         this.dyeColor = dyeColor;
         TEAMS_BY_NAME.put(dyeColor.getTranslationKey(), this);
-        TEAM_NAMES.add(dyeColor.getTranslationKey());
-        this.teamName = new TextComponentString(dyeColor.getTranslationKey());
+        TEAM_NAMES.add(dyeColor.getTranslationKey()); 
+        this.teamName = new StringTextComponent(dyeColor.getTranslationKey());
         this.teamName.getStyle().setColor(this.getTeamColorText());
-        this.color = ObfuscationReflectionHelper.getPrivateValue(EnumDyeColor.class, this.dyeColor, "field_193351_w");
+        this.color = this.dyeColor.getColorValue();
     }
 
     /**
@@ -101,7 +100,7 @@ public class Team {
      *
      * @return The dye color linked to the team.
      */
-    public EnumDyeColor getDyeColor () {
+    public DyeColor getDyeColor () {
 
         return this.dyeColor;
     }
@@ -134,19 +133,16 @@ public class Team {
     public ItemStack getFireworStack () {
 
         if (this.fireworStack == null || this.fireworStack.isEmpty()) {
-
-            this.fireworStack = new ItemStack(Items.FIREWORKS);
-            final NBTTagCompound baseTag = new NBTTagCompound();
-            this.fireworStack.setTagCompound(baseTag);
-            final NBTTagCompound fireworks = new NBTTagCompound();
-            fireworks.setByte("Flight", (byte) 0);
-            baseTag.setTag("Fireworks", fireworks);
-            final NBTTagList explosions = new NBTTagList();
-            fireworks.setTag("Explosions", explosions);
-            final NBTTagCompound explosion = new NBTTagCompound();
-            explosions.appendTag(explosion);
-            explosion.setByte("Type", (byte) 0);
-            explosion.setIntArray("Colors", new int[] { this.color });
+            this.fireworStack = new ItemStack(Items.FIREWORK_STAR);
+            final CompoundNBT baseTag = this.fireworStack.getOrCreateTag();
+            final CompoundNBT fireworks = new CompoundNBT();
+            fireworks.putByte("Flight", (byte) 0);
+            baseTag.put("Fireworks", fireworks);
+            final ListNBT explosions = new ListNBT();
+            fireworks.put("Explosions", explosions);
+            final CompoundNBT explosion = new CompoundNBT();
+            explosion.putByte("Type", (byte) 0);
+            explosion.putIntArray("Colors", new int[] { this.color });
         }
 
         return this.fireworStack;
@@ -157,13 +153,11 @@ public class Team {
      *
      * @param player The player to spawn the firework on.
      */
-    public void spawnFirework (EntityPlayer player) {
-
-        final EntityFireworkRocket rocket = new EntityFireworkRocket(player.getEntityWorld(), player.posX, player.posY, player.posZ, this.getFireworStack());
-        ObfuscationReflectionHelper.setPrivateValue(EntityFireworkRocket.class, rocket, 0, "field_92055_b");
-        player.getEntityWorld().spawnEntity(rocket);
+    public void spawnFirework (ServerPlayerEntity player) {
+        final FireworkRocketEntity rocket = new FireworkRocketEntity(player.getEntityWorld(), player.getPosX(), player.getPosY(), player.getPosZ(), this.getFireworStack());
+        ObfuscationReflectionHelper.setPrivateValue(FireworkRocketEntity.class, rocket, 0, "field_92055_b"); //lifetime
+        player.getEntityWorld().addEntity(rocket);
         player.world.setEntityState(rocket, (byte) 17);
-        rocket.setDead();
     }
 
     /**

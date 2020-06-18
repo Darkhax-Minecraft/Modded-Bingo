@@ -17,15 +17,8 @@ public class Goal extends WeightedObject {
     @Expose
     private Item item;
 
-    /**
-     * The meta for the item.
-     */
-    @Expose
-    private int meta;
-
     public ItemStack getTarget () {
-
-        return new ItemStack(this.item, 1, this.meta);
+        return new ItemStack(this.item, 1);
     }
 
     @Override
@@ -34,7 +27,6 @@ public class Goal extends WeightedObject {
         final int prime = 31;
         int result = 1;
         result = prime * result + (this.item == null ? 0 : this.item.hashCode());
-        result = prime * result + this.meta;
         return result;
     }
 
@@ -57,9 +49,6 @@ public class Goal extends WeightedObject {
             }
         }
         else if (!this.item.equals(other.item)) {
-            return false;
-        }
-        if (this.meta != other.meta) {
             return false;
         }
         return true;

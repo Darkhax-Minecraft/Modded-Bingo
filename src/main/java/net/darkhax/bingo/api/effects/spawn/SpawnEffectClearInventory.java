@@ -1,6 +1,6 @@
 package net.darkhax.bingo.api.effects.spawn;
 
-import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.math.BlockPos;
 
@@ -10,7 +10,7 @@ import net.minecraft.util.math.BlockPos;
 public class SpawnEffectClearInventory extends SpawnEffect {
 
     @Override
-    public void onPlayerSpawn (EntityPlayerMP player, BlockPos pos) {
+    public void onPlayerSpawn (ServerPlayerEntity player, BlockPos pos) {
 
         for (int slot = 0; slot < player.inventory.getSizeInventory(); slot++) {
             

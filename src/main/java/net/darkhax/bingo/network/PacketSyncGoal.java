@@ -1,16 +1,17 @@
 package net.darkhax.bingo.network;
 
+import java.util.function.Supplier;
+
 import net.darkhax.bingo.api.BingoAPI;
 import net.darkhax.bingo.api.team.Team;
-import net.darkhax.bookshelf.network.SerializableMessage;
-import net.minecraft.client.Minecraft;
-import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
-import net.minecraftforge.fml.common.network.simpleimpl.MessageContext;
+import net.minecraft.network.PacketBuffer;
+import net.minecraftforge.fml.network.NetworkEvent;
 
 /**
  * This packet is used to sync the state of a specific goal.
  */
-public class PacketSyncGoal extends SerializableMessage {
+
+public class PacketSyncGoal {
 
     /**
      * The X pos on the bingo board for the goal that is updated.
@@ -27,29 +28,28 @@ public class PacketSyncGoal extends SerializableMessage {
      */
     public String teamName;
 
-    public PacketSyncGoal () {
-
-    }
-
     public PacketSyncGoal (int x, int y, String team) {
-
         this.x = x;
         this.y = y;
         this.teamName = team;
     }
-
-    @Override
-    public IMessage handleMessage (MessageContext context) {
-
-        Minecraft.getMinecraft().addScheduledTask( () -> {
-
-            final Team team = Team.getTeamByName(this.teamName);
-
-            if (team != null) {
-
-                BingoAPI.GAME_STATE.getCompletionStates()[this.x][this.y][team.getTeamCorner()] = team;
-            }
-        });
-        return null;
+    
+    public PacketSyncGoal (PacketBuffer buffer) {
+    	this.x = buffer.readInt();
+    	this.y = buffer.readInt();
+    	this.teamName = buffer.readString(30);
+    }
+    
+    public void encode(PacketBuffer buffer) {
+    	buffer.writeInt(this.x);
+    	buffer.writeInt(this.y);
+    	buffer.writeString(this.teamName);
+    }
+    
+    public void handle(Supplier<NetworkEvent.Context> ctx) {
+    	final Team team = Team.getTeamByName(this.teamName);
+        if (team != null) {
+            BingoAPI.GAME_STATE.getCompletionStates()[this.x][this.y][team.getTeamCorner()] = team;
+        }
     }
 }

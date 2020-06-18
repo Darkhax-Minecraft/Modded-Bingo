@@ -2,6 +2,11 @@ package net.darkhax.bingo.commands;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Random;
+
+import com.mojang.brigadier.builder.LiteralArgumentBuilder;
+import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import com.mojang.brigadier.exceptions.SimpleCommandExceptionType;
 
 import net.darkhax.bingo.ModdedBingo;
 import net.darkhax.bingo.api.BingoAPI;
@@ -9,98 +14,71 @@ import net.darkhax.bingo.api.effects.spawn.SpawnEffect;
 import net.darkhax.bingo.api.team.Team;
 import net.darkhax.bingo.data.BingoPersistantData;
 import net.darkhax.bingo.network.PacketSyncGameState;
-import net.darkhax.bookshelf.command.Command;
+import net.darkhax.bookshelf.util.CommandUtils;
 import net.darkhax.bookshelf.util.MathsUtils;
-import net.minecraft.command.CommandException;
-import net.minecraft.command.ICommandSender;
-import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraft.server.MinecraftServer;
-import net.minecraft.util.EnumFacing;
+import net.minecraft.command.CommandSource;
+import net.minecraft.entity.player.ServerPlayerEntity;
+import net.minecraft.util.Direction;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.text.TextComponentTranslation;
-import net.minecraft.world.World;
+import net.minecraft.util.text.TranslationTextComponent;
 
-public class CommandBingoStart extends Command {
+public class CommandBingoStart {
 
-    @Override
-    public String getName () {
-
-        return "start";
-    }
-
-    @Override
-    public String getUsage (ICommandSender sender) {
-
-        return "command.bingo.start.usage";
-    }
-
-    @Override
-    public void execute (MinecraftServer server, ICommandSender sender, String[] args) throws CommandException {
-
-        if (!BingoAPI.GAME_STATE.isActive()) {
-
-            throw new CommandException("command.bingo.info.notactive");
+	public static LiteralArgumentBuilder<CommandSource> register() {
+		return CommandUtils.createCommand("start", 2, ctx -> {
+			execute(ctx.getSource().asPlayer());
+			return 1;
+		});
+	}
+	
+	private static void execute(ServerPlayerEntity source) throws CommandSyntaxException {
+		if (!BingoAPI.GAME_STATE.isActive()) {
+			throw new SimpleCommandExceptionType(new TranslationTextComponent("command.bingo.info.notactive")).create();
         }
-
-        if (BingoAPI.GAME_STATE.hasStarted() || BingoAPI.GAME_STATE.getWinner() != null) {
-
-            throw new CommandException("command.bingo.info.alreadystarted");
+		
+		if (BingoAPI.GAME_STATE.hasStarted() || BingoAPI.GAME_STATE.getWinner() != null) {
+			throw new SimpleCommandExceptionType(new TranslationTextComponent("command.bingo.info.alreadystarted")).create();
         }
-
-        BingoAPI.GAME_STATE.start(server, sender.getEntityWorld().getTotalWorldTime());
-        server.getPlayerList().sendMessage(new TextComponentTranslation("command.bingo.start.started", sender.getDisplayName()));
-        ModdedBingo.NETWORK.sendToAll(new PacketSyncGameState(BingoAPI.GAME_STATE.write()));
-
-        Map<Team, BlockPos> teamPositions = new HashMap<>();
-       
-        if (BingoAPI.GAME_STATE.shouldGroupTeams()) {
-            
+		
+		BingoAPI.GAME_STATE.start(source.getServer(), source.world.getGameTime());
+		source.getServer().getPlayerList().sendMessage(new TranslationTextComponent("command.bingo.start.started", source.getDisplayName()));
+		ModdedBingo.NETWORK.sendToAllPlayers(new PacketSyncGameState());
+		
+		Map<Team, BlockPos> teamPositions = new HashMap<>();
+		
+		if (BingoAPI.GAME_STATE.shouldGroupTeams()) {
             for (Team team : BingoAPI.TEAMS) {
-                
-                teamPositions.put(team, getRandomPosition(sender.getEntityWorld(), 0));
+                teamPositions.put(team, getRandomPosition(source, 0));
             }
         }
-        
-        for (final EntityPlayerMP player : server.getPlayerList().getPlayers()) {
-
-            BlockPos spawnPos = BingoAPI.GAME_STATE.shouldGroupTeams() ? teamPositions.get(BingoPersistantData.getTeam(player)) : this.getRandomPosition(player.world, 0);
-            
+		
+		for (final ServerPlayerEntity player : source.getServer().getPlayerList().getPlayers()) {
+            BlockPos spawnPos = BingoAPI.GAME_STATE.shouldGroupTeams() ? teamPositions.get(BingoPersistantData.getTeam(player)) : getRandomPosition(player, 0);
             for (final SpawnEffect effect : BingoAPI.GAME_STATE.getMode().getSpawnEffect()) {
-
                 effect.onPlayerSpawn(player, spawnPos);
             }
         }
-    }
+		
+	}
+	
+	private static BlockPos getRandomPosition(ServerPlayerEntity source, int depth) {
+		Random rand = BingoAPI.GAME_STATE.getRandom();
+		if(rand == null) { // is null when loaded from disc
+			rand = new Random();
+		}
+		
+        final int x = MathsUtils.nextIntInclusive(rand, -3_000_000, 3_000_000);
+        final int z = MathsUtils.nextIntInclusive(rand, -3_000_000, 3_000_000);
+        
+        final BlockPos.Mutable pos = new BlockPos.Mutable(x, 255, z);
 
-    private BlockPos getRandomPosition (World world, int depth) {
-
-        final int x = MathsUtils.nextIntInclusive(-3_000_000, 3_000_000);
-        final int z = MathsUtils.nextIntInclusive(-3_000_000, 3_000_000);
-
-        final BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos(x, 255, z);
-
-        while (world.isAirBlock(pos)) {
-
-            pos.move(EnumFacing.DOWN);
-
+        while (source.world.isAirBlock(pos)) {
+            pos.move(Direction.DOWN);
             if (pos.getY() <= 10) {
-
-                return depth == 100 ? pos : getRandomPosition(world, depth + 1);
+                return depth == 100 ? pos : getRandomPosition(source, depth + 1);
             }
         }
 
-        return !world.isSideSolid(pos, EnumFacing.UP) && depth < 100 ? getRandomPosition(world, depth + 1) : pos.move(EnumFacing.UP);
-    }
-    
-    @Override
-    public int getRequiredPermissionLevel () {
-
-        return 2;
-    }
-
-    @Override
-    public boolean checkPermission (MinecraftServer server, ICommandSender sender) {
-
-        return this.getRequiredPermissionLevel() <= 0 || super.checkPermission(server, sender);
+        return !source.world.isTopSolid(pos, source) && depth < 100 ? getRandomPosition(source, depth + 1) : pos.move(Direction.UP);
     }
 }
