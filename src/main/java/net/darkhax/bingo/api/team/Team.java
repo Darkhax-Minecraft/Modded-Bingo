@@ -24,6 +24,8 @@ import net.minecraftforge.fml.common.ObfuscationReflectionHelper;
  */
 public class Team {
 
+    private boolean finished = false;
+
     /**
      * A mapping of all teams by their name. This is used to (de)serialize them later.
      */
@@ -94,6 +96,14 @@ public class Team {
     public int getTeamCorner () {
 
         return this.teamCorner;
+    }
+
+    public boolean getFinishState () {
+      return this.finished;
+    }
+
+    public void setFinishState (boolean state) {
+      this.finished = state;
     }
 
     /**

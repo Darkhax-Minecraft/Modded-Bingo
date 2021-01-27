@@ -1,5 +1,7 @@
 bingo.player.obtained=[Bingo] %s obtained a %s
-bingo.winner=[Bingo] The %s team has won the game! You can run "/bingo stop" to end the game, or "/bingo create [table] [groupTeams] [blackout] [seed]" to start a new game.
+bingo.winner=[Bingo] The %s team has won the game!
+bingo.ender=[Bingo] The %s team has finished the game!
+bingo.empty=
 
 command.bingo.team.usage=/bingo team <red|green|blue|yellow>
 command.bingo.team.unknown=[Bingo] The team %s is not valid.

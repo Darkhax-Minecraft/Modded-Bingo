@@ -5,6 +5,8 @@ import com.google.gson.annotations.Expose;
 import net.darkhax.bingo.data.WeightedObject;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.NBTTagList;
 
 /**
  * Represents a goal that players may have to complete.
@@ -23,9 +25,16 @@ public class Goal extends WeightedObject {
     @Expose
     private int meta;
 
-    public ItemStack getTarget () {
+    /**
+     * The nbt for the item.
+     */
+    @Expose
+    private NBTTagCompound nbt;
 
-        return new ItemStack(this.item, 1, this.meta);
+    public ItemStack getTarget () {
+        //final NBTTagCompound nbt = new NBTTagCompound();
+
+        return new ItemStack(this.item, 1, this.meta, this.nbt);
     }
 
     @Override

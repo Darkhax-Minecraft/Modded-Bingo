@@ -117,7 +117,9 @@ public class GameState {
 
         this.hasStarted = true;
         this.startTime = startTime;
-
+        for (final Team team : BingoAPI.TEAMS) {
+          team.setFinishState(false);
+        }
         for (final StartingEffect effect : this.mode.getStartingEffects()) {
 
             effect.onGameStarted(server);
@@ -226,11 +228,18 @@ public class GameState {
 
         if (this.winner != null && this.hasStarted() && this.isActive()) {
 
-            this.hasStarted = false;
-            this.endTime = time;
+            //this.hasStarted = false;
+            //this.endTime = time;
+            boolean bingoWon = true;
+            for (final Team team : BingoAPI.TEAMS) {
+              if (team.getFinishState()) {
+                bingoWon = false;
+              }
+            }
+            winner.setFinishState(true);
             for (final GameWinEffect endEffect : this.mode.getWinEffects()) {
 
-                endEffect.onGameCompleted(server, this.winner);
+                endEffect.onGameCompleted(server, this.winner, bingoWon);
             }
         }
     }
@@ -260,73 +269,74 @@ public class GameState {
     public Team checkWinState () {
 
         for (final Team team : BingoAPI.TEAMS) {
+          if (!team.getFinishState()) {
+          	if (this.isBlackout()) {
 
-        	if (this.isBlackout()) {
+          		if (doesTeamHaveAll(team)) {
+          		    return team;
+          		}
+          	}
 
-        		if (doesTeamHaveAll(team)) {
-        		    return team;
-        		}
-        	}
+          	else {
 
-        	else {
+                  int countWon = 0;
 
-                int countWon = 0;
+                  // Check vertical lines
+                  for (int x = 0; x < 5; x++) {
 
-                // Check vertical lines
-                for (int x = 0; x < 5; x++) {
+                      boolean hasFailed = false;
 
-                    boolean hasFailed = false;
+                      for (int y = 0; y < 5; y++) {
 
-                    for (int y = 0; y < 5; y++) {
+                          if (!this.hasCompletedGoal(x, y, team)) {
 
-                        if (!this.hasCompletedGoal(x, y, team)) {
+                              hasFailed = true;
+                              break;
+                          }
+                      }
 
-                            hasFailed = true;
-                            break;
-                        }
-                    }
+                      if (!hasFailed) {
 
-                    if (!hasFailed) {
+                          countWon += 1;
+                      }
+                  }
 
-                        countWon += 1;
-                    }
-                }
+                  // Check horizontal lines
+                  for (int y = 0; y < 5; y++) {
 
-                // Check horizontal lines
-                for (int y = 0; y < 5; y++) {
+                      boolean hasFailed = false;
 
-                    boolean hasFailed = false;
+                      for (int x = 0; x < 5; x++) {
 
-                    for (int x = 0; x < 5; x++) {
+                          if (!this.hasCompletedGoal(x, y, team)) {
 
-                        if (!this.hasCompletedGoal(x, y, team)) {
+                              hasFailed = true;
+                              break;
+                          }
+                      }
 
-                            hasFailed = true;
-                            break;
-                        }
-                    }
+                      if (!hasFailed) {
 
-                    if (!hasFailed) {
+                          countWon += 1;
+                      }
+                  }
 
-                        countWon += 1;
-                    }
-                }
+                  // Check one horizontal line
+                  if (this.hasCompletedGoal(0, 0, team) && this.hasCompletedGoal(1, 1, team) && this.hasCompletedGoal(2, 2, team) && this.hasCompletedGoal(3, 3, team) && this.hasCompletedGoal(4, 4, team)) {
 
-                // Check one horizontal line
-                if (this.hasCompletedGoal(0, 0, team) && this.hasCompletedGoal(1, 1, team) && this.hasCompletedGoal(2, 2, team) && this.hasCompletedGoal(3, 3, team) && this.hasCompletedGoal(4, 4, team)) {
+                      countWon += 1;
+                  }
 
-                    countWon += 1;
-                }
+                  // Check other horizontal line
+                  if (this.hasCompletedGoal(0, 4, team) && this.hasCompletedGoal(1, 3, team) && this.hasCompletedGoal(2, 2, team) && this.hasCompletedGoal(3, 1, team) && this.hasCompletedGoal(4, 0, team)) {
 
-                // Check other horizontal line
-                if (this.hasCompletedGoal(0, 4, team) && this.hasCompletedGoal(1, 3, team) && this.hasCompletedGoal(2, 2, team) && this.hasCompletedGoal(3, 1, team) && this.hasCompletedGoal(4, 0, team)) {
-
-                    countWon += 1;
-                }
-                if (countWon >= this.winCount) {
-    			           return team;
-    		        }
-        	}
+                      countWon += 1;
+                  }
+                  if (countWon >= this.winCount) {
+      			           return team;
+      		        }
+               }
+          	}
         }
 
         return null;
