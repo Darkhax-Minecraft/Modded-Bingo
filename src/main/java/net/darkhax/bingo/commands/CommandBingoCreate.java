@@ -34,32 +34,33 @@ public class CommandBingoCreate extends Command {
     @Override
     public void execute (MinecraftServer server, ICommandSender sender, String[] args) throws CommandException {
 
-        final GameMode gameMode = args.length >= 1 ? BingoAPI.getGameMode(new ResourceLocation(args[0])) : BingoAPI.getGameMode(new ResourceLocation("bingo:default"));
-        final boolean groupTeams = args.length >= 2 ? parseBoolean(args[1]) : true;
-        final boolean blackout = args.length >= 3 ? parseBoolean(args[2]) : false;
-        final Random random = args.length >= 4 ? new Random(args[3].hashCode()) : new Random();
-        
+      final GameMode gameMode = args.length >= 1 ? BingoAPI.getGameMode(new ResourceLocation(args[0])) : BingoAPI.getGameMode(new ResourceLocation("bingo:default"));
+      final int winCount = args.length >= 2 ? parseInt(args[1]) : 1;
+      final boolean groupTeams = args.length >= 3 ? parseBoolean(args[2]) : true;
+      final boolean blackout = args.length >= 4 ? parseBoolean(args[3]) : false;
+      final Random random = args.length >= 5 ? new Random(args[4].hashCode()) : new Random();
+
         if (gameMode != null) {
-            
+
         	if (BingoAPI.GAME_STATE.hasStarted() || BingoAPI.GAME_STATE.isActive()) {
-        		
+
                 BingoAPI.GAME_STATE.end();
                 server.getPlayerList().sendMessage(new TextComponentTranslation("command.bingo.stop.stopped", sender.getDisplayName()));
                 ModdedBingo.NETWORK.sendToAll(new PacketSyncGameState(BingoAPI.GAME_STATE.write()));
         	}
-        	
-            BingoAPI.GAME_STATE.create(random, gameMode, groupTeams, blackout);
+
+            BingoAPI.GAME_STATE.create(random, gameMode, groupTeams, blackout, winCount);
 
             server.getPlayerList().sendMessage(new TextComponentTranslation("command.bingo.create.announce" + (blackout ? ".blackout" : ""), sender.getDisplayName()));
             ModdedBingo.NETWORK.sendToAll(new PacketSyncGameState(BingoAPI.GAME_STATE.write()));
-        }           
-        
+        }
+
         else {
-            
+
             throw new CommandException("command.bingo.create.unknown");
         }
     }
-    
+
     @Override
     public List<String> getTabCompletions (MinecraftServer server, ICommandSender sender, String[] args, @Nullable BlockPos targetPos) {
 
@@ -67,10 +68,10 @@ public class CommandBingoCreate extends Command {
 
             return getListOfStringsMatchingLastWord(args, BingoAPI.getGameModeKeys());
         }
-        
+
         return super.getTabCompletions(server, sender, args, targetPos);
     }
-    
+
     @Override
     public int getRequiredPermissionLevel () {
 

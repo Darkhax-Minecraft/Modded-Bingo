@@ -68,18 +68,20 @@ public class GameState {
      * Whether or not the game has been started. The state will not update while this is false.
      */
     private boolean hasStarted = false;
-    
+
     /**
      * Whether or not teams should be grouped together.
      */
     private boolean groupTeams = true;
 
     private boolean blackout = false;
-    
+
+    private int winCount = 1;
+
     private long startTime = -1L;
-    
+
     private long endTime = -1L;
-    
+
     /**
      * The team that has won the game. This can be null.
      */
@@ -92,7 +94,7 @@ public class GameState {
      * @param random An instance of random.
      * @param mode The mode to play.
      */
-    public void create (Random random, GameMode mode, boolean groupTeams, boolean blackout) {
+    public void create (Random random, GameMode mode, boolean groupTeams, boolean blackout, int winCount) {
 
         this.mode = mode;
         this.table = mode.getRandomTable(random);
@@ -103,6 +105,7 @@ public class GameState {
         this.completionStates = new Team[5][5][4];
         this.groupTeams = groupTeams;
         this.blackout = blackout;
+        this.winCount = winCount < 1 ? 1: winCount > 12 ? 12 : winCount;
     }
 
     /**
@@ -233,7 +236,7 @@ public class GameState {
     }
 
     private boolean doesTeamHaveAll(Team team) {
-    	
+
         for (int x = 0; x < 5; x++) {
 
             for (int y = 0; y < 5; y++) {
@@ -244,10 +247,10 @@ public class GameState {
                 }
             }
         }
-        
+
         return true;
     }
-    
+
     /**
      * Looks at the board data to find a team that has won the game.
      *
@@ -259,14 +262,16 @@ public class GameState {
         for (final Team team : BingoAPI.TEAMS) {
 
         	if (this.isBlackout()) {
-        		
+
         		if (doesTeamHaveAll(team)) {
         		    return team;
         		}
         	}
-        	
+
         	else {
-        		
+
+                int countWon = 0;
+
                 // Check vertical lines
                 for (int x = 0; x < 5; x++) {
 
@@ -283,7 +288,7 @@ public class GameState {
 
                     if (!hasFailed) {
 
-                        return team;
+                        countWon += 1;
                     }
                 }
 
@@ -303,21 +308,24 @@ public class GameState {
 
                     if (!hasFailed) {
 
-                        return team;
+                        countWon += 1;
                     }
                 }
 
                 // Check one horizontal line
                 if (this.hasCompletedGoal(0, 0, team) && this.hasCompletedGoal(1, 1, team) && this.hasCompletedGoal(2, 2, team) && this.hasCompletedGoal(3, 3, team) && this.hasCompletedGoal(4, 4, team)) {
 
-                    return team;
+                    countWon += 1;
                 }
 
                 // Check other horizontal line
                 if (this.hasCompletedGoal(0, 4, team) && this.hasCompletedGoal(1, 3, team) && this.hasCompletedGoal(2, 2, team) && this.hasCompletedGoal(3, 1, team) && this.hasCompletedGoal(4, 0, team)) {
 
-                    return team;
+                    countWon += 1;
                 }
+                if (countWon >= this.winCount) {
+    			           return team;
+    		        }
         	}
         }
 
@@ -477,17 +485,17 @@ public class GameState {
 
         return this.mode;
     }
-    
+
     public long getStartTime() {
-    	
+
     	return this.startTime;
     }
 
     public long getEndTime() {
-    	
+
     	return this.endTime;
     }
-    
+
     /**
      * Reads the game state from an NBT tag.
      *
@@ -507,7 +515,8 @@ public class GameState {
         this.blackout = false;
         this.startTime = -1L;
         this.endTime = -1L;
-        
+        this.winCount = 1;
+
         if (tag != null) {
 
             // Read basic game data
@@ -520,6 +529,7 @@ public class GameState {
             this.startTime = tag.getLong("StartTime");
             this.endTime = tag.getLong("EndTime");
             this.winner = Team.getTeamByName(tag.getString("Winner"));
+            this.winCount = tag.getInteger("WinCount");
 
             if (this.table != null) {
 
@@ -569,9 +579,10 @@ public class GameState {
         tag.setBoolean("Blackout", this.blackout);
         tag.setLong("StartTime", this.startTime);
         tag.setLong("EndTime", this.endTime);
-        
+        tag.setInteger("WinCount", this.winCount);
+
         if (this.winner != null) {
-        	
+
         	tag.setString("Winner", this.winner.getTeamKey());
         }
 
@@ -629,17 +640,17 @@ public class GameState {
     }
 
     public boolean isHasStarted () {
-        
+
         return hasStarted;
     }
 
     public boolean shouldGroupTeams () {
-        
+
         return groupTeams;
     }
-    
+
     public boolean isBlackout() {
-    	
+
     	return this.blackout;
     }
 }
