@@ -10,7 +10,7 @@ command.bingo.team.change=[Bingo] %s has changed to the %s team.
 command.bingo.create.usage=/bingo create [gamemode] [winCount] [groupTeams] [blackout] [seed]
 command.bingo.create.announce=[Bingo] %s has created a game of bingo. Use "/bingo team <red|green|blue|yellow>" to join a team if you have not yet. The game will start when "/bingo start" has been used.
 command.bingo.create.announce.blackout=[Bingo] %s has created a game of blackout bingo. Use "/bingo team <red|green|blue|yellow>" to join a team if you have not yet. The game will start when "/bingo start" has been used.
-command.bingo.create.unknown=[Bingp] No game mode exists with the ID %s.
+command.bingo.create.unknown=[Bingo] No game mode exists with this ID.
 
 command.bingo.start.usage=/bingo start
 command.bingo.start.started=[Bingo] %s has started the game. Have fun!
@@ -24,5 +24,8 @@ command.bingo.info.alreadystarted=[Bingo] Another game has already started. You 
 command.bingo.stop.usage=/bingo stop
 command.bingo.stop.stopped=[Bingo] %s has ended the game.
 command.bingo.stop.nogame=[Bingo] There is no game to stop.
+
+command.bingo.reload.reloaded=[Bingo] %s has reloaded the files.
+command.bingo.reload.usage=/bingo reload
 
 tooltip.bingo.goalitem=Bingo Item

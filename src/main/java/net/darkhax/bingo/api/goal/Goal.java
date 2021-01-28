@@ -6,7 +6,9 @@ import net.darkhax.bingo.data.WeightedObject;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.nbt.NBTTagList;
+import java.util.List;
+
+import net.darkhax.bingo.ModdedBingo;
 
 /**
  * Represents a goal that players may have to complete.
@@ -29,12 +31,24 @@ public class Goal extends WeightedObject {
      * The nbt for the item.
      */
     @Expose
-    private NBTTagCompound nbt;
+    private List<GoalNBTData> nbt;
 
     public ItemStack getTarget () {
-        //final NBTTagCompound nbt = new NBTTagCompound();
 
-        return new ItemStack(this.item, 1, this.meta, this.nbt);
+        final ItemStack stack = new ItemStack(this.item, 1, this.meta);
+        /*
+        if (this.nbt != null) {
+          CompoundNBT nbtCompound = new CompoundNBT();
+          stack.setTag(nbtCompound);
+
+          for (final GoalNBTData data : this.nbt) {
+            //nbtCompound.setString(data.getKey(),data.getValue());
+            nbtCompound.putString(data.getKey(),data.getValue());
+            ModdedBingo.LOG.info("Goal NBT: " + data.getKey() + "  "+data.getValue());
+          }
+        }
+        */
+        return stack;
     }
 
     @Override

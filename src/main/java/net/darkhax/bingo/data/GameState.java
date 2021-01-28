@@ -358,7 +358,7 @@ public class GameState {
 
                     final ItemStack goal = this.getGoal(x, y);
 
-                    if (StackUtils.areStacksSimilar(goal, stack)) {
+                    if (StackUtils.areStacksSimilarWithPartialNBT(stack, goal)) {
 
                         this.setGoalComplete(player, stack, x, y);
                     }

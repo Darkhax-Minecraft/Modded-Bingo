@@ -14,6 +14,7 @@ public class CommandBingo extends CommandTreeBase {
         this.addSubcommand(new CommandBingoStart());
         this.addSubcommand(new CommandBingoReroll());
         this.addSubcommand(new CommandBingoStop());
+        this.addSubcommand(new CommandBingoReload());
         this.addSubcommand(new CommandTreeHelp(this));
     }
 
