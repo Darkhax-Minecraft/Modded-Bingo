@@ -36,18 +36,18 @@ public class Goal extends WeightedObject {
     public ItemStack getTarget () {
 
         final ItemStack stack = new ItemStack(this.item, 1, this.meta);
-        /*
+
         if (this.nbt != null) {
-          CompoundNBT nbtCompound = new CompoundNBT();
-          stack.setTag(nbtCompound);
+          NBTTagCompound nbtCompound = new NBTTagCompound();
+          stack.setTagCompound(nbtCompound);
 
           for (final GoalNBTData data : this.nbt) {
             //nbtCompound.setString(data.getKey(),data.getValue());
-            nbtCompound.putString(data.getKey(),data.getValue());
+            nbtCompound.setString(data.getKey(),data.getValue());
             ModdedBingo.LOG.info("Goal NBT: " + data.getKey() + "  "+data.getValue());
           }
         }
-        */
+
         return stack;
     }
 
@@ -58,6 +58,11 @@ public class Goal extends WeightedObject {
         int result = 1;
         result = prime * result + (this.item == null ? 0 : this.item.hashCode());
         result = prime * result + this.meta;
+        if (this.nbt != null) {
+          for (final GoalNBTData data : this.nbt) {
+            result = prime * result + (data.getValue().hashCode() + 3*data.getKey().hashCode());
+          }
+        }
         return result;
     }
 
@@ -85,6 +90,22 @@ public class Goal extends WeightedObject {
         if (this.meta != other.meta) {
             return false;
         }
-        return true;
+        if (this.nbt != null) {
+          if (other.nbt != null) {
+            if (this.nbt.equals(other.nbt)) {
+              return true;
+            } else {
+              return false;
+            }
+          } else {
+            return false;
+          }
+        } else {
+          if (other.nbt != null) {
+            return false;
+          } else {
+            return true;
+          }
+        }
     }
 }
