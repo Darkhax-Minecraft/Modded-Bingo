@@ -143,7 +143,7 @@ public class BingoRenderer {
 
                 for (int y = 0; y < 5; y++) {
 
-                    final ItemStack goal = BingoAPI.GAME_STATE.getGoal(x, y);
+                    final ItemStack goal = BingoAPI.GAME_STATE.getDGoal(x, y);
 
                     if (goal != null) {
 

@@ -55,6 +55,11 @@ public class GameState {
     private ItemStack[][] goals = new ItemStack[5][5];
 
     /**
+     * A two dimensional array of all items that must be acquired to win.
+     */
+    private ItemStack[][] dgoals = new ItemStack[5][5];
+
+    /**
      * A three dimensional array of which teams have what goals.
      */
     private Team[][][] completionStates = new Team[5][5][4];
@@ -153,6 +158,10 @@ public class GameState {
         return this.goals[x][y];
     }
 
+    public ItemStack getDGoal (int x, int y) {
+
+        return this.dgoals[x][y];
+    }
     /**
      * Sets the goal item for a position on the bingo board.
      *
@@ -163,6 +172,11 @@ public class GameState {
     public void setGoal (int x, int y, ItemStack goal) {
 
         this.goals[x][y] = goal;
+    }
+
+    public void setDGoal (int x, int y, ItemStack goal) {
+
+        this.dgoals[x][y] = goal;
     }
 
     /**
@@ -401,7 +415,8 @@ public class GameState {
 
         for (final Goal goal : generatedGoals) {
 
-            this.setGoal(xOff, yOff, goal.getTarget());
+            this.setGoal(xOff, yOff, goal.getTarget(false));
+            this.setDGoal(xOff, yOff, goal.getTarget(true));
 
             xOff++;
             if (xOff == 5) {
@@ -520,6 +535,7 @@ public class GameState {
         this.winner = null;
         this.random = null;
         this.goals = new ItemStack[5][5];
+        this.dgoals = new ItemStack[5][5];
         this.completionStates = new Team[5][5][4];
         this.groupTeams = false;
         this.blackout = false;
@@ -550,6 +566,15 @@ public class GameState {
 
                     final NBTTagCompound goalTag = goalsTag.getCompoundTagAt(i);
                     this.setGoal(goalTag.getInteger("X"), goalTag.getInteger("Y"), new ItemStack(goalTag.getCompoundTag("ItemStack")));
+                }
+
+                // Read the goal items
+                final NBTTagList dgoalsTag = tag.getTagList("DGoals", NBT.TAG_COMPOUND);
+
+                for (int i = 0; i < dgoalsTag.tagCount(); i++) {
+
+                    final NBTTagCompound dgoalTag = dgoalsTag.getCompoundTagAt(i);
+                    this.setDGoal(dgoalTag.getInteger("X"), dgoalTag.getInteger("Y"), new ItemStack(dgoalTag.getCompoundTag("ItemStack")));
                 }
 
                 // Read the completion states
@@ -616,6 +641,23 @@ public class GameState {
                     goalTag.setInteger("Y", y);
                     goalTag.setTag("ItemStack", goal.writeToNBT(new NBTTagCompound()));
                     goalTags.appendTag(goalTag);
+                }
+            }
+
+            // Write the goal items
+            final NBTTagList dgoalTags = new NBTTagList();
+            tag.setTag("DGoals", dgoalTags);
+
+            for (int x = 0; x < 5; x++) {
+
+                for (int y = 0; y < 5; y++) {
+
+                    final ItemStack dgoal = this.dgoals[x][y];
+                    final NBTTagCompound dgoalTag = new NBTTagCompound();
+                    dgoalTag.setInteger("X", x);
+                    dgoalTag.setInteger("Y", y);
+                    dgoalTag.setTag("ItemStack", dgoal.writeToNBT(new NBTTagCompound()));
+                    dgoalTags.appendTag(dgoalTag);
                 }
             }
 

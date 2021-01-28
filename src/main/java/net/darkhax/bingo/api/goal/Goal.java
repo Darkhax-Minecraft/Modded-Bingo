@@ -33,7 +33,11 @@ public class Goal extends WeightedObject {
     @Expose
     private List<GoalNBTData> nbt;
 
-    public ItemStack getTarget () {
+
+    @Expose
+    private List<GoalNBTData> dnbt;
+
+    public ItemStack getTarget (boolean display) {
 
         final ItemStack stack = new ItemStack(this.item, 1, this.meta);
 
@@ -42,9 +46,12 @@ public class Goal extends WeightedObject {
           stack.setTagCompound(nbtCompound);
 
           for (final GoalNBTData data : this.nbt) {
-            //nbtCompound.setString(data.getKey(),data.getValue());
             nbtCompound.setString(data.getKey(),data.getValue());
-            ModdedBingo.LOG.info("Goal NBT: " + data.getKey() + "  "+data.getValue());
+          }
+          if (display && this.dnbt != null) {
+            for (final GoalNBTData data : this.dnbt) {
+              nbtCompound.setString(data.getKey(),data.getValue());
+            }
           }
         }
 
