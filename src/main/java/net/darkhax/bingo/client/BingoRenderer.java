@@ -43,7 +43,11 @@ public class BingoRenderer {
         long s = seconds % 60;
         long m = (seconds / 60) % 60;
         long h = (seconds / (60 * 60)) % 24;
-        return String.format("%d:%02d:%02d", h,m,s);
+        if (h == 0L) {
+          return String.format("%02d:%02d",m,s);
+        } else {
+          return String.format("%d:%02d:%02d",h,m,s);
+        }
     }
 
     @SubscribeEvent
@@ -78,9 +82,9 @@ public class BingoRenderer {
         if (event.phase == Phase.END && BingoAPI.GAME_STATE.isActive() && Minecraft.isGuiEnabled() && mc.currentScreen == null && !mc.gameSettings.showDebugInfo && !(mc.gameSettings.keyBindPlayerList.isKeyDown() && !mc.isIntegratedServerRunning())) {
 
             if (bingo.isActive() && bingo.getStartTime() > 0 && mc.world != null) {
-
+              String winCountStr = String.valueOf(bingo.getWinCount());
             	long endTime = bingo.getEndTime() >= bingo.getStartTime() ? bingo.getEndTime() : mc.world.getTotalWorldTime();
-                mc.fontRenderer.drawString("Time: " + StringUtils.ticksToElapsedTime((int) (endTime - bingo.getStartTime())), 14, 2, 0xffffff, false);
+                mc.fontRenderer.drawString( winCountStr + " Bingo - " + getTimeDisplay((endTime - bingo.getStartTime())/20L), 14, 2, 0xffffff, false);
             }
 
             final RenderItem itemRender = Minecraft.getMinecraft().getRenderItem();

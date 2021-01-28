@@ -663,4 +663,9 @@ public class GameState {
 
     	return this.blackout;
     }
+
+    public int getWinCount() {
+
+      return this.winCount;
+    }
 }
