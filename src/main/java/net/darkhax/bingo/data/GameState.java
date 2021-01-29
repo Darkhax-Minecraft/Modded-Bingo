@@ -557,7 +557,7 @@ public class GameState {
             this.winner = Team.getTeamByName(tag.getString("Winner"));
             this.winCount = tag.getInteger("WinCount");
 
-            if (this.table != null) {
+            if (this.isActive) {
 
                 // Read the goal items
                 final NBTTagList goalsTag = tag.getTagList("Goals", NBT.TAG_COMPOUND);
