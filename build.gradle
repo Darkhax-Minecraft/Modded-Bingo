@@ -1,22 +1,22 @@
 buildscript {
 
     repositories {
-
+    
         jcenter()
-
-        maven {
-
+        
+        maven { 
+        
             url = 'http://files.minecraftforge.net/maven'
         }
-
+        
         maven {
 
             url 'https://plugins.gradle.org/m2/'
         }
     }
-
+    
     dependencies {
-
+    
         classpath 'net.minecraftforge.gradle:ForgeGradle:2.3-SNAPSHOT'
         classpath 'gradle.plugin.com.matthewprenger:CurseGradle:1.4.0'
     }
@@ -24,7 +24,7 @@ buildscript {
 
 apply plugin: 'net.minecraftforge.gradle.forge'
 apply plugin: 'com.matthewprenger.cursegradle'
-apply plugin: 'maven-publish'
+apply plugin: 'maven-publish' 
 
 apply from: 'https://raw.githubusercontent.com/MinecraftModDevelopment/Gradle-Collection/master/generic/secrets.gradle'
 apply from: 'https://raw.githubusercontent.com/MinecraftModDevelopment/Gradle-Collection/master/generic/patreon.gradle'
@@ -33,7 +33,7 @@ apply from: 'https://raw.githubusercontent.com/MinecraftModDevelopment/Gradle-Co
 apply from: 'https://raw.githubusercontent.com/MinecraftModDevelopment/Gradle-Collection/master/minecraft/maven.gradle'
 
 loadSecrets()
-version = "${mod_version}"
+version = "${mod_version}" + getBuildNumber()
 group = "${mod_group}"
 archivesBaseName = "${mod_name}-${version_minecraft}"
 
@@ -45,7 +45,7 @@ minecraft {
     version = "${version_minecraft}-${version_forge}"
     mappings = "${version_mcp}"
     runDir = 'run'
-
+    
     replace '@VERSION@', project.version
     replace '@FINGERPRINT@', project.findProperty('signSHA1')
     replaceIn "${mod_class}.java"
@@ -55,7 +55,7 @@ repositories {
 
     maven {
 
-        url 'dependencies/'
+        url 'https://maven.mcmoddev.com'
     }
 }
 
@@ -70,13 +70,13 @@ processResources {
     inputs.property "mcversion", project.minecraft.version
 
     from(sourceSets.main.resources.srcDirs) {
-
+    
         include 'mcmod.info'
         expand 'version':project.version, 'mcversion':project.minecraft.version
     }
-
+        
     from(sourceSets.main.resources.srcDirs) {
-
+    
         exclude 'mcmod.info'
     }
 
@@ -87,7 +87,7 @@ processResources {
 jar {
 
     manifest {
-
+ 	
  	    attributes 'FMLAT': 'dmgcontrol_at.cfg'
  	}
  }
@@ -111,7 +111,7 @@ if (JavaVersion.current().isJava8Compatible()) {
 
 curseforge {
 
-    apiKey = findProperty('curse_auth') ?: 0
+    apiKey = findProperty('curse_auth') ?: 0 
     def versions = "${curse_versions}".split(', ')
 
     project {
@@ -160,10 +160,10 @@ curseforge {
 task signJar(type: SignJar, dependsOn: reobfJar) {
 
     onlyIf {
-
+    
         project.hasProperty('keyStore')
     }
-
+    
     keyStore = project.findProperty('keyStore')
     alias = project.findProperty('keyStoreAlias')
     storePass = project.findProperty('keyStorePass')
