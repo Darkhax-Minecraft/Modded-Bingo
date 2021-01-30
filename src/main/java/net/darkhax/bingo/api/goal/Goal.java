@@ -41,21 +41,42 @@ public class Goal extends WeightedObject {
 
         final ItemStack stack = new ItemStack(this.item, 1, this.meta);
 
-        if (this.nbt != null) {
+        if ((this.nbt != null) || (display && this.dnbt != null)) {
           NBTTagCompound nbtCompound = new NBTTagCompound();
           stack.setTagCompound(nbtCompound);
-
-          for (final GoalNBTData data : this.nbt) {
-            nbtCompound.setString(data.getKey(),data.getValue());
+          if (this.nbt != null) {
+            for (final GoalNBTData data : this.nbt) {
+              this.addNbtToCompound(nbtCompound, data);
+            }
           }
           if (display && this.dnbt != null) {
             for (final GoalNBTData data : this.dnbt) {
-              nbtCompound.setString(data.getKey(),data.getValue());
+              this.addNbtToCompound(nbtCompound, data);
             }
           }
         }
 
         return stack;
+    }
+
+    public void addNbtToCompound (NBTTagCompound nbtCompound, GoalNBTData data) {
+      if (data.getType() != null) {
+        switch (data.getType()) {
+          case "b":
+            nbtCompound.setByte(data.getKey(),data.getBValue());
+            break;
+          case "l":
+            nbtCompound.setLong(data.getKey(),data.getLValue());
+            break;
+          case "s":
+            nbtCompound.setShort(data.getKey(),data.getSValue());
+            break;
+          default:
+            nbtCompound.setString(data.getKey(),data.getValue());
+        }
+      } else {
+        nbtCompound.setString(data.getKey(),data.getValue());
+      }
     }
 
     @Override

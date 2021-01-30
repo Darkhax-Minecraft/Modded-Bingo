@@ -644,7 +644,7 @@ public class GameState {
                 }
             }
 
-            // Write the goal items
+            // Write the dgoal items
             final NBTTagList dgoalTags = new NBTTagList();
             tag.setTag("DGoals", dgoalTags);
 
@@ -656,7 +656,12 @@ public class GameState {
                     final NBTTagCompound dgoalTag = new NBTTagCompound();
                     dgoalTag.setInteger("X", x);
                     dgoalTag.setInteger("Y", y);
-                    dgoalTag.setTag("ItemStack", dgoal.writeToNBT(new NBTTagCompound()));
+                    if (dgoal != null) {
+                      dgoalTag.setTag("ItemStack", dgoal.writeToNBT(new NBTTagCompound()));
+                    } else {
+                      final ItemStack sdgoal = this.goals[x][y];
+                      dgoalTag.setTag("ItemStack", sdgoal.writeToNBT(new NBTTagCompound()));
+                    }
                     dgoalTags.appendTag(dgoalTag);
                 }
             }
