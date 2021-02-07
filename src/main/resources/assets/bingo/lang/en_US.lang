@@ -28,4 +28,9 @@ command.bingo.stop.nogame=[Bingo] There is no game to stop.
 command.bingo.reload.reloaded=[Bingo] %s has reloaded the files.
 command.bingo.reload.usage=/bingo reload
 
+command.bingo.item.usage=/bingo item [x] [y]
+command.bingo.item.display=[Bingo] Item: %s
+command.bingo.item.invalid=[Bingo] Invalid Board Position
+command.bingo.item.stopped=[Bingo] No active Board
+
 tooltip.bingo.goalitem=Bingo Item

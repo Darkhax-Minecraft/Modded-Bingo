@@ -10,6 +10,8 @@ import net.darkhax.bookshelf.util.MathsUtils;
 import net.darkhax.bookshelf.util.StackUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Gui;
+import net.minecraft.client.gui.GuiChat;
+import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.client.renderer.BufferBuilder;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.RenderHelper;
@@ -79,7 +81,7 @@ public class BingoRenderer {
 
         // Prevent shwoing the game board while crafting, in a gui, on the debug screen, or in
         // the player tab list.
-        if (event.phase == Phase.END && BingoAPI.GAME_STATE.isActive() && Minecraft.isGuiEnabled() && mc.currentScreen == null && !mc.gameSettings.showDebugInfo && !(mc.gameSettings.keyBindPlayerList.isKeyDown() && !mc.isIntegratedServerRunning())) {
+        if (event.phase == Phase.END && BingoAPI.GAME_STATE.isActive() && Minecraft.isGuiEnabled() && (mc.currentScreen == null || (mc.currentScreen instanceof GuiContainer) || (mc.currentScreen instanceof GuiChat))) {
 
             if (bingo.isActive() && bingo.getStartTime() > 0 && mc.world != null) {
               String winCountStr = String.valueOf(bingo.getWinCount());
