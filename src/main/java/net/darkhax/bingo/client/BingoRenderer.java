@@ -10,6 +10,8 @@ import net.darkhax.bookshelf.util.MathsUtils;
 import net.darkhax.bookshelf.util.StackUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Gui;
+import net.minecraft.client.gui.GuiChat;
+import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.client.renderer.BufferBuilder;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.RenderHelper;
@@ -37,52 +39,59 @@ public class BingoRenderer {
      * the highlight when a team has completed a goal.
      */
     private static final int[][] teamUVs = new int[][] { new int[] { 0, 0, 11, 11 }, new int[] { 11, 0, 11, 11 }, new int[] { 0, 11, 11, 11 }, new int[] { 11, 11, 11, 11 } };
-    
+
     public static String getTimeDisplay(long seconds) {
-    	
+
         long s = seconds % 60;
         long m = (seconds / 60) % 60;
         long h = (seconds / (60 * 60)) % 24;
-        return String.format("%d:%02d:%02d", h,m,s);
+        if (h == 0L) {
+          return String.format("%02d:%02d",m,s);
+        } else {
+          return String.format("%d:%02d:%02d",h,m,s);
+        }
     }
-    
+
     @SubscribeEvent
     public static void onTooltip(ItemTooltipEvent event) {
-    	
+
     	if (BingoAPI.GAME_STATE != null) {
-    		
+
             for (int x = 0; x < 5; x++) {
 
                 for (int y = 0; y < 5; y++) {
 
                 	ItemStack goal = BingoAPI.GAME_STATE.getGoal(x, y);
-                	
-                	if (goal != null && !goal.isEmpty() && StackUtils.areStacksSimilar(goal, event.getItemStack())) {
-                		
+
+                	if (goal != null && !goal.isEmpty() && StackUtils.areStacksSimilarWithPartialNBT(event.getItemStack(), goal)) {
+
                 		event.getToolTip().add(TextFormatting.YELLOW + I18n.format("tooltip.bingo.goalitem"));
                 	}
                 }
             }
     	}
     }
-    
+
     @SubscribeEvent
     public static void render (TickEvent.RenderTickEvent event) {
 
     	GameState bingo = BingoAPI.GAME_STATE;
-    	
+
         final Minecraft mc = Minecraft.getMinecraft();
-        
+
         // Prevent shwoing the game board while crafting, in a gui, on the debug screen, or in
         // the player tab list.
-        if (event.phase == Phase.END && BingoAPI.GAME_STATE.isActive() && Minecraft.isGuiEnabled() && mc.currentScreen == null && !mc.gameSettings.showDebugInfo && !(mc.gameSettings.keyBindPlayerList.isKeyDown() && !mc.isIntegratedServerRunning())) {
+        if (event.phase == Phase.END && BingoAPI.GAME_STATE.isActive() && Minecraft.isGuiEnabled() && (mc.currentScreen == null || (mc.currentScreen instanceof GuiContainer) || (mc.currentScreen instanceof GuiChat))) {
 
             if (bingo.isActive() && bingo.getStartTime() > 0 && mc.world != null) {
-
+              String winCountStr = String.valueOf(bingo.getWinCount());
             	long endTime = bingo.getEndTime() >= bingo.getStartTime() ? bingo.getEndTime() : mc.world.getTotalWorldTime();
-                mc.fontRenderer.drawString("Time: " + StringUtils.ticksToElapsedTime((int) (endTime - bingo.getStartTime())), 14, 2, 0xffffff, false);
+              if (bingo.isLockout()){
+                winCountStr = "Lockout";
+              }
+                mc.fontRenderer.drawString( winCountStr + " Bingo - " + getTimeDisplay((endTime - bingo.getStartTime())/20L), 14, 2, 0xffffff, false);
             }
-            
+
             final RenderItem itemRender = Minecraft.getMinecraft().getRenderItem();
 
             GlStateManager.pushMatrix();
@@ -139,7 +148,7 @@ public class BingoRenderer {
 
                 for (int y = 0; y < 5; y++) {
 
-                    final ItemStack goal = BingoAPI.GAME_STATE.getGoal(x, y);
+                    final ItemStack goal = BingoAPI.GAME_STATE.getDGoal(x, y);
 
                     if (goal != null) {
 

@@ -11,7 +11,7 @@ import net.minecraft.server.MinecraftServer;
 public class EndingEffectFirework extends GameWinEffect {
 
     @Override
-    public void onGameCompleted (MinecraftServer server, Team winningTeam) {
+    public void onGameCompleted (MinecraftServer server, Team winningTeam, boolean bingoWon) {
 
         for (final EntityPlayerMP player : server.getPlayerList().getPlayers()) {
 

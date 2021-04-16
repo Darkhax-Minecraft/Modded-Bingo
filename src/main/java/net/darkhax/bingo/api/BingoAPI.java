@@ -131,15 +131,15 @@ public class BingoAPI {
     private static Map<ResourceLocation, GoalTable> goalTables = new HashMap<>();
 
     public static Collection<ResourceLocation> getGameModeKeys() {
-        
+
         return gameModes.keySet();
     }
-    
+
     public static Collection<ResourceLocation> getTableKeys() {
-        
+
         return goalTables.keySet();
     }
-    
+
     /**
      * Registers a new type of collection effect with the Gson type adapter. This allows the
      * effect to be used by data driven game modes.
@@ -279,14 +279,14 @@ public class BingoAPI {
         if (mode != null && mode.getModeId() != null) {
 
             for (ResourceLocation tableId : mode.getGoalTables()) {
-                
+
                 if (!goalTables.containsKey(tableId)) {
-                    
+
                     ModdedBingo.LOG.error("The game mode {} references unknown table {}. It will not be registered.", mode.getModeId().toString(), tableId.toString());
                     return;
                 }
             }
-            
+
             ModdedBingo.LOG.info("Successfully loaded Game Mode: " + mode.getModeId().toString());
             gameModes.put(mode.getModeId(), mode);
         }

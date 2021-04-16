@@ -11,8 +11,15 @@ import net.minecraft.util.text.TextComponentTranslation;
 public class EndingEffectAnnounce extends GameWinEffect {
 
     @Override
-    public void onGameCompleted (MinecraftServer server, Team winningTeam) {
-
+    public void onGameCompleted (MinecraftServer server, Team winningTeam, boolean bingoWon) {
+      server.getPlayerList().sendMessage(new TextComponentTranslation("bingo.empty"));
+      if (bingoWon) {
+        server.getPlayerList().sendMessage(new TextComponentTranslation("bingo.empty"));
         server.getPlayerList().sendMessage(new TextComponentTranslation("bingo.winner", winningTeam.getTeamName()));
+        server.getPlayerList().sendMessage(new TextComponentTranslation("bingo.empty"));
+      } else {
+        server.getPlayerList().sendMessage(new TextComponentTranslation("bingo.ender", winningTeam.getTeamName()));
+      }
+      server.getPlayerList().sendMessage(new TextComponentTranslation("bingo.empty"));
     }
 }

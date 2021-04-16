@@ -15,5 +15,5 @@ public abstract class GameWinEffect {
      * @param server An instance of the game server.
      * @param winningTeam The team that won the game.
      */
-    public abstract void onGameCompleted (MinecraftServer server, Team winningTeam);
+    public abstract void onGameCompleted (MinecraftServer server, Team winningTeam, boolean bingoWon);
 }

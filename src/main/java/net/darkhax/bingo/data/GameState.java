@@ -55,6 +55,11 @@ public class GameState {
     private ItemStack[][] goals = new ItemStack[5][5];
 
     /**
+     * A two dimensional array of all items that must be acquired to win.
+     */
+    private ItemStack[][] dgoals = new ItemStack[5][5];
+
+    /**
      * A three dimensional array of which teams have what goals.
      */
     private Team[][][] completionStates = new Team[5][5][4];
@@ -68,18 +73,20 @@ public class GameState {
      * Whether or not the game has been started. The state will not update while this is false.
      */
     private boolean hasStarted = false;
-    
+
     /**
      * Whether or not teams should be grouped together.
      */
     private boolean groupTeams = true;
 
-    private boolean blackout = false;
-    
+    private boolean lockout = false;
+
+    private int winCount = 1;
+
     private long startTime = -1L;
-    
+
     private long endTime = -1L;
-    
+
     /**
      * The team that has won the game. This can be null.
      */
@@ -92,7 +99,7 @@ public class GameState {
      * @param random An instance of random.
      * @param mode The mode to play.
      */
-    public void create (Random random, GameMode mode, boolean groupTeams, boolean blackout) {
+    public void create (Random random, GameMode mode, boolean groupTeams, boolean lockout, int winCount) {
 
         this.mode = mode;
         this.table = mode.getRandomTable(random);
@@ -102,7 +109,8 @@ public class GameState {
         this.hasStarted = false;
         this.completionStates = new Team[5][5][4];
         this.groupTeams = groupTeams;
-        this.blackout = blackout;
+        this.lockout = lockout;
+        this.winCount = winCount < 1 ? 1: winCount > 12 ? 12 : winCount;
     }
 
     /**
@@ -114,7 +122,9 @@ public class GameState {
 
         this.hasStarted = true;
         this.startTime = startTime;
-
+        for (final Team team : BingoAPI.TEAMS) {
+          team.setFinishState(false);
+        }
         for (final StartingEffect effect : this.mode.getStartingEffects()) {
 
             effect.onGameStarted(server);
@@ -148,6 +158,10 @@ public class GameState {
         return this.goals[x][y];
     }
 
+    public ItemStack getDGoal (int x, int y) {
+
+        return this.dgoals[x][y];
+    }
     /**
      * Sets the goal item for a position on the bingo board.
      *
@@ -158,6 +172,11 @@ public class GameState {
     public void setGoal (int x, int y, ItemStack goal) {
 
         this.goals[x][y] = goal;
+    }
+
+    public void setDGoal (int x, int y, ItemStack goal) {
+
+        this.dgoals[x][y] = goal;
     }
 
     /**
@@ -218,36 +237,115 @@ public class GameState {
      * @param server An instance of the server.
      */
     public void updateWinState (MinecraftServer server, long time) {
+      if (this.isLockout()) {
+
+        int unfinishedTeamCount = 0;
+        int maxItemCount = 0;
+        int max2ItemCount = 0;
+        int itemCount = 0;
+
+        int leftoverItems = countLeftoverItems();
+        boolean bingoWon = true;
+        boolean loopCondition = true;
+
+        while (loopCondition) {
+
+          for (final Team team : BingoAPI.TEAMS) {
+            if (team.getFinishState()) {
+              bingoWon = false;
+            }
+          }
+
+          unfinishedTeamCount = 0;
+          maxItemCount = 0;
+          max2ItemCount = 0;
+
+          for (final Team team : BingoAPI.TEAMS) {
+            if (!team.getFinishState()) {
+
+              itemCount = countTeamItems(team);
+              team.setItemCount(itemCount);
+              unfinishedTeamCount += 1;
+
+              if (itemCount > maxItemCount) {
+                max2ItemCount = maxItemCount;
+                maxItemCount = itemCount;
+              } else if (itemCount > max2ItemCount) {
+                max2ItemCount = itemCount;
+              }
+
+            }
+          }
+
+          if ( (unfinishedTeamCount >= 2) && ((leftoverItems == 0) || (maxItemCount > (max2ItemCount + leftoverItems))) ) {
+            for (final Team team : BingoAPI.TEAMS) {
+              if (!team.getFinishState()) {
+                if (team.getItemCount() == maxItemCount) {
+                  for (final GameWinEffect endEffect : this.mode.getWinEffects()) {
+
+                      endEffect.onGameCompleted(server, team, bingoWon);
+                  }
+                  team.setFinishState(true);
+                }
+              }
+            }
+          } else {
+            loopCondition = false;
+          }
+        }
+
+      } else {
 
         this.winner = this.checkWinState();
 
         if (this.winner != null && this.hasStarted() && this.isActive()) {
 
-            this.hasStarted = false;
-            this.endTime = time;
+            //this.hasStarted = false;
+            //this.endTime = time;
+            boolean bingoWon = true;
+            for (final Team team : BingoAPI.TEAMS) {
+              if (team.getFinishState()) {
+                bingoWon = false;
+              }
+            }
+            this.winner.setFinishState(true);
             for (final GameWinEffect endEffect : this.mode.getWinEffects()) {
 
-                endEffect.onGameCompleted(server, this.winner);
+                endEffect.onGameCompleted(server, this.winner, bingoWon);
             }
+          }
         }
     }
 
-    private boolean doesTeamHaveAll(Team team) {
-    	
+    private int countTeamItems(Team team) {
+
+        int itemCount = 0;
+
         for (int x = 0; x < 5; x++) {
 
             for (int y = 0; y < 5; y++) {
 
-                if (!this.hasCompletedGoal(x, y, team)) {
+                if (this.hasCompletedGoal(x, y, team)) {
 
-                	return false;
+                	itemCount += 1;
                 }
             }
         }
-        
-        return true;
+
+        return itemCount;
     }
-    
+
+    private int countLeftoverItems() {
+
+        int itemCount = 25;
+
+        for (final Team team : BingoAPI.TEAMS) {
+          itemCount -= countTeamItems(team);
+        }
+
+        return itemCount;
+    }
+
     /**
      * Looks at the board data to find a team that has won the game.
      *
@@ -257,16 +355,10 @@ public class GameState {
     public Team checkWinState () {
 
         for (final Team team : BingoAPI.TEAMS) {
+          if (!team.getFinishState()) {
 
-        	if (this.isBlackout()) {
-        		
-        		if (doesTeamHaveAll(team)) {
-        		    return team;
-        		}
-        	}
-        	
-        	else {
-        		
+                int countWon = 0;
+
                 // Check vertical lines
                 for (int x = 0; x < 5; x++) {
 
@@ -283,7 +375,7 @@ public class GameState {
 
                     if (!hasFailed) {
 
-                        return team;
+                        countWon += 1;
                     }
                 }
 
@@ -303,22 +395,25 @@ public class GameState {
 
                     if (!hasFailed) {
 
-                        return team;
+                        countWon += 1;
                     }
                 }
 
                 // Check one horizontal line
                 if (this.hasCompletedGoal(0, 0, team) && this.hasCompletedGoal(1, 1, team) && this.hasCompletedGoal(2, 2, team) && this.hasCompletedGoal(3, 3, team) && this.hasCompletedGoal(4, 4, team)) {
 
-                    return team;
+                    countWon += 1;
                 }
 
                 // Check other horizontal line
                 if (this.hasCompletedGoal(0, 4, team) && this.hasCompletedGoal(1, 3, team) && this.hasCompletedGoal(2, 2, team) && this.hasCompletedGoal(3, 1, team) && this.hasCompletedGoal(4, 0, team)) {
 
-                    return team;
+                    countWon += 1;
                 }
-        	}
+                if (countWon >= this.winCount) {
+    			           return team;
+    		        }
+          	}
         }
 
         return null;
@@ -340,9 +435,21 @@ public class GameState {
 
                     final ItemStack goal = this.getGoal(x, y);
 
-                    if (StackUtils.areStacksSimilar(goal, stack)) {
+                    if (goal != null && !goal.isEmpty() && StackUtils.areStacksSimilarWithPartialNBT(stack, goal)) {
 
+                      boolean hasGotten = false;
+                      if (this.isLockout()) {
+
+                        for (final Team team : BingoAPI.TEAMS) {
+                          if (this.hasCompletedGoal(x, y, team)) {
+                            hasGotten = true;
+                          }
+                        }
+
+                      }
+                      if (!hasGotten){
                         this.setGoalComplete(player, stack, x, y);
+                      }
                     }
                 }
             }
@@ -383,7 +490,8 @@ public class GameState {
 
         for (final Goal goal : generatedGoals) {
 
-            this.setGoal(xOff, yOff, goal.getTarget());
+            this.setGoal(xOff, yOff, goal.getTarget(false));
+            this.setDGoal(xOff, yOff, goal.getTarget(true));
 
             xOff++;
             if (xOff == 5) {
@@ -477,17 +585,17 @@ public class GameState {
 
         return this.mode;
     }
-    
+
     public long getStartTime() {
-    	
+
     	return this.startTime;
     }
 
     public long getEndTime() {
-    	
+
     	return this.endTime;
     }
-    
+
     /**
      * Reads the game state from an NBT tag.
      *
@@ -502,12 +610,14 @@ public class GameState {
         this.winner = null;
         this.random = null;
         this.goals = new ItemStack[5][5];
+        this.dgoals = new ItemStack[5][5];
         this.completionStates = new Team[5][5][4];
         this.groupTeams = false;
-        this.blackout = false;
+        this.lockout = false;
         this.startTime = -1L;
         this.endTime = -1L;
-        
+        this.winCount = 1;
+
         if (tag != null) {
 
             // Read basic game data
@@ -516,12 +626,13 @@ public class GameState {
             this.isActive = tag.getBoolean("IsActive");
             this.hasStarted = tag.getBoolean("HasStarted");
             this.groupTeams = tag.getBoolean("GroupTeams");
-            this.blackout = tag.getBoolean("Blackout");
+            this.lockout = tag.getBoolean("Lockout");
             this.startTime = tag.getLong("StartTime");
             this.endTime = tag.getLong("EndTime");
             this.winner = Team.getTeamByName(tag.getString("Winner"));
+            this.winCount = tag.getInteger("WinCount");
 
-            if (this.table != null) {
+            if (this.isActive) {
 
                 // Read the goal items
                 final NBTTagList goalsTag = tag.getTagList("Goals", NBT.TAG_COMPOUND);
@@ -530,6 +641,15 @@ public class GameState {
 
                     final NBTTagCompound goalTag = goalsTag.getCompoundTagAt(i);
                     this.setGoal(goalTag.getInteger("X"), goalTag.getInteger("Y"), new ItemStack(goalTag.getCompoundTag("ItemStack")));
+                }
+
+                // Read the goal items
+                final NBTTagList dgoalsTag = tag.getTagList("DGoals", NBT.TAG_COMPOUND);
+
+                for (int i = 0; i < dgoalsTag.tagCount(); i++) {
+
+                    final NBTTagCompound dgoalTag = dgoalsTag.getCompoundTagAt(i);
+                    this.setDGoal(dgoalTag.getInteger("X"), dgoalTag.getInteger("Y"), new ItemStack(dgoalTag.getCompoundTag("ItemStack")));
                 }
 
                 // Read the completion states
@@ -566,12 +686,13 @@ public class GameState {
         tag.setBoolean("IsActive", this.isActive());
         tag.setBoolean("HasStarted", this.hasStarted());
         tag.setBoolean("GroupTeams", this.shouldGroupTeams());
-        tag.setBoolean("Blackout", this.blackout);
+        tag.setBoolean("Lockout", this.lockout);
         tag.setLong("StartTime", this.startTime);
         tag.setLong("EndTime", this.endTime);
-        
+        tag.setInteger("WinCount", this.winCount);
+
         if (this.winner != null) {
-        	
+
         	tag.setString("Winner", this.winner.getTeamKey());
         }
 
@@ -595,6 +716,28 @@ public class GameState {
                     goalTag.setInteger("Y", y);
                     goalTag.setTag("ItemStack", goal.writeToNBT(new NBTTagCompound()));
                     goalTags.appendTag(goalTag);
+                }
+            }
+
+            // Write the dgoal items
+            final NBTTagList dgoalTags = new NBTTagList();
+            tag.setTag("DGoals", dgoalTags);
+
+            for (int x = 0; x < 5; x++) {
+
+                for (int y = 0; y < 5; y++) {
+
+                    final ItemStack dgoal = this.dgoals[x][y];
+                    final NBTTagCompound dgoalTag = new NBTTagCompound();
+                    dgoalTag.setInteger("X", x);
+                    dgoalTag.setInteger("Y", y);
+                    if (dgoal != null) {
+                      dgoalTag.setTag("ItemStack", dgoal.writeToNBT(new NBTTagCompound()));
+                    } else {
+                      final ItemStack sdgoal = this.goals[x][y];
+                      dgoalTag.setTag("ItemStack", sdgoal.writeToNBT(new NBTTagCompound()));
+                    }
+                    dgoalTags.appendTag(dgoalTag);
                 }
             }
 
@@ -629,17 +772,22 @@ public class GameState {
     }
 
     public boolean isHasStarted () {
-        
+
         return hasStarted;
     }
 
     public boolean shouldGroupTeams () {
-        
+
         return groupTeams;
     }
-    
-    public boolean isBlackout() {
-    	
-    	return this.blackout;
+
+    public boolean isLockout() {
+
+    	return this.lockout;
+    }
+
+    public int getWinCount() {
+
+      return this.winCount;
     }
 }
