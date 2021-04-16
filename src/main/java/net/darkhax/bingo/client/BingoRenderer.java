@@ -86,6 +86,9 @@ public class BingoRenderer {
             if (bingo.isActive() && bingo.getStartTime() > 0 && mc.world != null) {
               String winCountStr = String.valueOf(bingo.getWinCount());
             	long endTime = bingo.getEndTime() >= bingo.getStartTime() ? bingo.getEndTime() : mc.world.getTotalWorldTime();
+              if (bingo.isLockout()){
+                winCountStr = "Lockout";
+              }
                 mc.fontRenderer.drawString( winCountStr + " Bingo - " + getTimeDisplay((endTime - bingo.getStartTime())/20L), 14, 2, 0xffffff, false);
             }
 

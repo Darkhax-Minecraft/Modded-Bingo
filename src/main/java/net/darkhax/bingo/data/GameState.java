@@ -79,7 +79,7 @@ public class GameState {
      */
     private boolean groupTeams = true;
 
-    private boolean blackout = false;
+    private boolean lockout = false;
 
     private int winCount = 1;
 
@@ -99,7 +99,7 @@ public class GameState {
      * @param random An instance of random.
      * @param mode The mode to play.
      */
-    public void create (Random random, GameMode mode, boolean groupTeams, boolean blackout, int winCount) {
+    public void create (Random random, GameMode mode, boolean groupTeams, boolean lockout, int winCount) {
 
         this.mode = mode;
         this.table = mode.getRandomTable(random);
@@ -109,7 +109,7 @@ public class GameState {
         this.hasStarted = false;
         this.completionStates = new Team[5][5][4];
         this.groupTeams = groupTeams;
-        this.blackout = blackout;
+        this.lockout = lockout;
         this.winCount = winCount < 1 ? 1: winCount > 12 ? 12 : winCount;
     }
 
@@ -237,6 +237,64 @@ public class GameState {
      * @param server An instance of the server.
      */
     public void updateWinState (MinecraftServer server, long time) {
+      if (this.isLockout()) {
+
+        int unfinishedTeamCount = 0;
+        int maxItemCount = 0;
+        int max2ItemCount = 0;
+        int itemCount = 0;
+
+        int leftoverItems = countLeftoverItems();
+        boolean bingoWon = true;
+        boolean loopCondition = true;
+
+        while (loopCondition) {
+
+          for (final Team team : BingoAPI.TEAMS) {
+            if (team.getFinishState()) {
+              bingoWon = false;
+            }
+          }
+
+          unfinishedTeamCount = 0;
+          maxItemCount = 0;
+          max2ItemCount = 0;
+
+          for (final Team team : BingoAPI.TEAMS) {
+            if (!team.getFinishState()) {
+
+              itemCount = countTeamItems(team);
+              team.setItemCount(itemCount);
+              unfinishedTeamCount += 1;
+
+              if (itemCount > maxItemCount) {
+                max2ItemCount = maxItemCount;
+                maxItemCount = itemCount;
+              } else if (itemCount > max2ItemCount) {
+                max2ItemCount = itemCount;
+              }
+
+            }
+          }
+
+          if ( (unfinishedTeamCount >= 2) && ((leftoverItems == 0) || (maxItemCount > (max2ItemCount + leftoverItems))) ) {
+            for (final Team team : BingoAPI.TEAMS) {
+              if (!team.getFinishState()) {
+                if (team.getItemCount() == maxItemCount) {
+                  for (final GameWinEffect endEffect : this.mode.getWinEffects()) {
+
+                      endEffect.onGameCompleted(server, team, bingoWon);
+                  }
+                  team.setFinishState(true);
+                }
+              }
+            }
+          } else {
+            loopCondition = false;
+          }
+        }
+
+      } else {
 
         this.winner = this.checkWinState();
 
@@ -250,28 +308,42 @@ public class GameState {
                 bingoWon = false;
               }
             }
-            winner.setFinishState(true);
+            this.winner.setFinishState(true);
             for (final GameWinEffect endEffect : this.mode.getWinEffects()) {
 
                 endEffect.onGameCompleted(server, this.winner, bingoWon);
             }
+          }
         }
     }
 
-    private boolean doesTeamHaveAll(Team team) {
+    private int countTeamItems(Team team) {
+
+        int itemCount = 0;
 
         for (int x = 0; x < 5; x++) {
 
             for (int y = 0; y < 5; y++) {
 
-                if (!this.hasCompletedGoal(x, y, team)) {
+                if (this.hasCompletedGoal(x, y, team)) {
 
-                	return false;
+                	itemCount += 1;
                 }
             }
         }
 
-        return true;
+        return itemCount;
+    }
+
+    private int countLeftoverItems() {
+
+        int itemCount = 25;
+
+        for (final Team team : BingoAPI.TEAMS) {
+          itemCount -= countTeamItems(team);
+        }
+
+        return itemCount;
     }
 
     /**
@@ -284,72 +356,63 @@ public class GameState {
 
         for (final Team team : BingoAPI.TEAMS) {
           if (!team.getFinishState()) {
-          	if (this.isBlackout()) {
 
-          		if (doesTeamHaveAll(team)) {
-          		    return team;
-          		}
-          	}
+                int countWon = 0;
 
-          	else {
+                // Check vertical lines
+                for (int x = 0; x < 5; x++) {
 
-                  int countWon = 0;
+                    boolean hasFailed = false;
 
-                  // Check vertical lines
-                  for (int x = 0; x < 5; x++) {
+                    for (int y = 0; y < 5; y++) {
 
-                      boolean hasFailed = false;
+                        if (!this.hasCompletedGoal(x, y, team)) {
 
-                      for (int y = 0; y < 5; y++) {
+                            hasFailed = true;
+                            break;
+                        }
+                    }
 
-                          if (!this.hasCompletedGoal(x, y, team)) {
+                    if (!hasFailed) {
 
-                              hasFailed = true;
-                              break;
-                          }
-                      }
+                        countWon += 1;
+                    }
+                }
 
-                      if (!hasFailed) {
+                // Check horizontal lines
+                for (int y = 0; y < 5; y++) {
 
-                          countWon += 1;
-                      }
-                  }
+                    boolean hasFailed = false;
 
-                  // Check horizontal lines
-                  for (int y = 0; y < 5; y++) {
+                    for (int x = 0; x < 5; x++) {
 
-                      boolean hasFailed = false;
+                        if (!this.hasCompletedGoal(x, y, team)) {
 
-                      for (int x = 0; x < 5; x++) {
+                            hasFailed = true;
+                            break;
+                        }
+                    }
 
-                          if (!this.hasCompletedGoal(x, y, team)) {
+                    if (!hasFailed) {
 
-                              hasFailed = true;
-                              break;
-                          }
-                      }
+                        countWon += 1;
+                    }
+                }
 
-                      if (!hasFailed) {
+                // Check one horizontal line
+                if (this.hasCompletedGoal(0, 0, team) && this.hasCompletedGoal(1, 1, team) && this.hasCompletedGoal(2, 2, team) && this.hasCompletedGoal(3, 3, team) && this.hasCompletedGoal(4, 4, team)) {
 
-                          countWon += 1;
-                      }
-                  }
+                    countWon += 1;
+                }
 
-                  // Check one horizontal line
-                  if (this.hasCompletedGoal(0, 0, team) && this.hasCompletedGoal(1, 1, team) && this.hasCompletedGoal(2, 2, team) && this.hasCompletedGoal(3, 3, team) && this.hasCompletedGoal(4, 4, team)) {
+                // Check other horizontal line
+                if (this.hasCompletedGoal(0, 4, team) && this.hasCompletedGoal(1, 3, team) && this.hasCompletedGoal(2, 2, team) && this.hasCompletedGoal(3, 1, team) && this.hasCompletedGoal(4, 0, team)) {
 
-                      countWon += 1;
-                  }
-
-                  // Check other horizontal line
-                  if (this.hasCompletedGoal(0, 4, team) && this.hasCompletedGoal(1, 3, team) && this.hasCompletedGoal(2, 2, team) && this.hasCompletedGoal(3, 1, team) && this.hasCompletedGoal(4, 0, team)) {
-
-                      countWon += 1;
-                  }
-                  if (countWon >= this.winCount) {
-      			           return team;
-      		        }
-               }
+                    countWon += 1;
+                }
+                if (countWon >= this.winCount) {
+    			           return team;
+    		        }
           	}
         }
 
@@ -374,7 +437,19 @@ public class GameState {
 
                     if (goal != null && !goal.isEmpty() && StackUtils.areStacksSimilarWithPartialNBT(stack, goal)) {
 
+                      boolean hasGotten = false;
+                      if (this.isLockout()) {
+
+                        for (final Team team : BingoAPI.TEAMS) {
+                          if (this.hasCompletedGoal(x, y, team)) {
+                            hasGotten = true;
+                          }
+                        }
+
+                      }
+                      if (!hasGotten){
                         this.setGoalComplete(player, stack, x, y);
+                      }
                     }
                 }
             }
@@ -538,7 +613,7 @@ public class GameState {
         this.dgoals = new ItemStack[5][5];
         this.completionStates = new Team[5][5][4];
         this.groupTeams = false;
-        this.blackout = false;
+        this.lockout = false;
         this.startTime = -1L;
         this.endTime = -1L;
         this.winCount = 1;
@@ -551,7 +626,7 @@ public class GameState {
             this.isActive = tag.getBoolean("IsActive");
             this.hasStarted = tag.getBoolean("HasStarted");
             this.groupTeams = tag.getBoolean("GroupTeams");
-            this.blackout = tag.getBoolean("Blackout");
+            this.lockout = tag.getBoolean("Lockout");
             this.startTime = tag.getLong("StartTime");
             this.endTime = tag.getLong("EndTime");
             this.winner = Team.getTeamByName(tag.getString("Winner"));
@@ -611,7 +686,7 @@ public class GameState {
         tag.setBoolean("IsActive", this.isActive());
         tag.setBoolean("HasStarted", this.hasStarted());
         tag.setBoolean("GroupTeams", this.shouldGroupTeams());
-        tag.setBoolean("Blackout", this.blackout);
+        tag.setBoolean("Lockout", this.lockout);
         tag.setLong("StartTime", this.startTime);
         tag.setLong("EndTime", this.endTime);
         tag.setInteger("WinCount", this.winCount);
@@ -706,9 +781,9 @@ public class GameState {
         return groupTeams;
     }
 
-    public boolean isBlackout() {
+    public boolean isLockout() {
 
-    	return this.blackout;
+    	return this.lockout;
     }
 
     public int getWinCount() {
